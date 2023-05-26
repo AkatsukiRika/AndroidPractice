@@ -72,4 +72,5 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    implementation(libs.constraintlayout.compose)
 }
