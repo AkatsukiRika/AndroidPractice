@@ -13,3 +13,8 @@ object ImageGallery : TPDestination {
     override val route: String
         get() = "image_gallery"
 }
+
+object MemoryRecall : TPDestination {
+    override val route: String
+        get() = "memory_recall"
+}

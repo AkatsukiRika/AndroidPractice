@@ -22,6 +22,8 @@ import com.tangping.androidpractice.R
 
 interface HomeScreenCallback {
     fun onImageGalleryClick()
+
+    fun onMemoryRecallClick()
 }
 
 @Composable
@@ -47,6 +49,12 @@ fun HomeScreen(
             }
         }) {
             Text(text = stringResource(id = R.string.image_gallery))
+        }
+
+        Button(onClick = {
+            callback?.onMemoryRecallClick()
+        }) {
+            Text(text = stringResource(id = R.string.memory_recall))
         }
     }
 }

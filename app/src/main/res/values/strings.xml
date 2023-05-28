@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">AndroidPractice</string>
     <string name="image_gallery">Image Gallery</string>
+    <string name="memory_recall">Memory Recall</string>
+    <string name="unfamiliar">Unfamiliar</string>
+    <string name="hesitated">Hesitated</string>
+    <string name="recalled">Recalled</string>
 </resources>
