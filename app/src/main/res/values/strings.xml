@@ -5,4 +5,5 @@
     <string name="unfamiliar">Unfamiliar</string>
     <string name="hesitated">Hesitated</string>
     <string name="recalled">Recalled</string>
+    <string name="recall_completed">Recall Completed! No more cards to recall today.</string>
 </resources>

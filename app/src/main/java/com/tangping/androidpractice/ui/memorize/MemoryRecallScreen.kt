@@ -1,5 +1,6 @@
 package com.tangping.androidpractice.ui.memorize
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,14 +17,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
@@ -33,7 +37,24 @@ interface MemoryRecallScreenCallback {
 }
 
 @Composable
-fun MemoryRecallScreen(callback: MemoryRecallScreenCallback? = null) {
+fun MemoryRecallScreen(
+    callback: MemoryRecallScreenCallback? = null,
+    viewModel: MemoryRecallViewModel = hiltViewModel()
+) {
+    val viewStates = viewModel.viewStates
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
+        viewModel.viewEvents.collect {
+            when (it) {
+                is MemoryRecallViewEvent.DisplayMessage -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     ConstraintLayout(modifier = Modifier
         .background(darkBackground)
         .fillMaxSize()
@@ -72,7 +93,10 @@ fun MemoryRecallScreen(callback: MemoryRecallScreenCallback? = null) {
                     .padding(all = 6.dp),
                 color = gayBackground
             ) {
-
+                Text(
+                    text = viewStates.currentCard?.question ?: "",
+                    color = Color.White
+                )
             }
 
             Surface(
@@ -82,7 +106,10 @@ fun MemoryRecallScreen(callback: MemoryRecallScreenCallback? = null) {
                     .padding(all = 6.dp),
                 color = gayBackground
             ) {
-
+                Text(
+                    text = viewStates.currentCard?.answer ?: "",
+                    color = Color.White
+                )
             }
         }
 
