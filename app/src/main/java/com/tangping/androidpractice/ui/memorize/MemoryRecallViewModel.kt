@@ -10,6 +10,7 @@ import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.model.memorize.QuestionDeck
 import com.tangping.androidpractice.model.memorize.RecallStatus
+import com.tangping.androidpractice.utils.NetworkUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -18,6 +19,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MemoryRecallViewModel @Inject constructor() : ViewModel() {
+    companion object {
+        const val JSON_FILE_NAME = "question_deck.json"
+    }
+
     var viewStates by mutableStateOf(MemoryRecallViewState())
         private set
 
@@ -41,6 +46,9 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
                 viewStates.currentCard?.updateDueTime(RecallStatus.RECALLED)
                 displayMessage(context.getString(R.string.recalled_toast))
             }
+            is MemoryRecallViewAction.UseRemoteData -> {
+                useRemoteData(context, action.url)
+            }
         }
     }
 
@@ -59,6 +67,12 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     private fun displayMessage(message: String) {
         viewModelScope.launch {
             _viewEvents.send(MemoryRecallViewEvent.DisplayMessage(message))
+        }
+    }
+
+    private fun useRemoteData(context: Context, url: String) {
+        viewModelScope.launch {
+            NetworkUtils.downloadAndSaveJson(context, url, JSON_FILE_NAME)
         }
     }
 }
@@ -84,4 +98,5 @@ sealed class MemoryRecallViewAction {
     object ClickUnfamiliar : MemoryRecallViewAction()
     object ClickHesitated : MemoryRecallViewAction()
     object ClickRecalled : MemoryRecallViewAction()
+    data class UseRemoteData(val url: String) : MemoryRecallViewAction()
 }

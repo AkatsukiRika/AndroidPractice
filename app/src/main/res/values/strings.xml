@@ -9,4 +9,7 @@
     <string name="unfamiliar_toast">This question will show again in 1 minute.</string>
     <string name="hesitated_toast">This question will show again in 10 minutes.</string>
     <string name="recalled_toast">This question will show again in 3 days.</string>
+    <string name="memorize_popup">Input JSON file URL or use local cache:</string>
+    <string name="use_local_cache">Use local cache</string>
+    <string name="use_remote_data">Use remote data</string>
 </resources>
