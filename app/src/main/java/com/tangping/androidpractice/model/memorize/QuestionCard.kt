@@ -11,7 +11,7 @@ data class QuestionCard(
         const val INTERVAL_RECALLED = 3 * 24 * 60 * 60 * 1000L      // 3 Days
     }
 
-    fun updateNextInterval(recallStatus: RecallStatus) {
+    fun updateDueTime(recallStatus: RecallStatus) {
         val interval = when (recallStatus) {
             RecallStatus.UNFAMILIAR -> INTERVAL_UNFAMILIAR
             RecallStatus.HESITATED -> INTERVAL_HESITATED

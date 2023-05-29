@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.model.memorize.QuestionDeck
+import com.tangping.androidpractice.model.memorize.RecallStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -28,16 +29,29 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             MemoryRecallViewAction.ChangeCard -> {
                 changeCard(context)
             }
+            MemoryRecallViewAction.ClickUnfamiliar -> {
+                viewStates.currentCard?.updateDueTime(RecallStatus.UNFAMILIAR)
+                displayMessage(context.getString(R.string.unfamiliar_toast))
+            }
+            MemoryRecallViewAction.ClickHesitated -> {
+                viewStates.currentCard?.updateDueTime(RecallStatus.HESITATED)
+                displayMessage(context.getString(R.string.hesitated_toast))
+            }
+            MemoryRecallViewAction.ClickRecalled -> {
+                viewStates.currentCard?.updateDueTime(RecallStatus.RECALLED)
+                displayMessage(context.getString(R.string.recalled_toast))
+            }
         }
     }
 
     private fun changeCard(context: Context) {
         viewStates.apply {
             val nextDueCard = questionDeck.getNextDueCard()
-            if (nextDueCard != null) {
-                currentCard = nextDueCard
+            viewStates = if (nextDueCard != null) {
+                viewStates.copy(currentCard = nextDueCard)
             } else {
                 displayMessage(context.getString(R.string.recall_completed))
+                viewStates.copy(currentCard = null)
             }
         }
     }
@@ -67,4 +81,7 @@ sealed class MemoryRecallViewEvent {
 
 sealed class MemoryRecallViewAction {
     object ChangeCard : MemoryRecallViewAction()
+    object ClickUnfamiliar : MemoryRecallViewAction()
+    object ClickHesitated : MemoryRecallViewAction()
+    object ClickRecalled : MemoryRecallViewAction()
 }

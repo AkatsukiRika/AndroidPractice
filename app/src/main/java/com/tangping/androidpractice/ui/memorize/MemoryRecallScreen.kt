@@ -95,7 +95,8 @@ fun MemoryRecallScreen(
             ) {
                 Text(
                     text = viewStates.currentCard?.question ?: "",
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.padding(3.dp)
                 )
             }
 
@@ -108,7 +109,8 @@ fun MemoryRecallScreen(
             ) {
                 Text(
                     text = viewStates.currentCard?.answer ?: "",
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.padding(3.dp)
                 )
             }
         }
@@ -125,7 +127,12 @@ fun MemoryRecallScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    viewModel.apply {
+                        dispatch(MemoryRecallViewAction.ClickUnfamiliar, context)
+                        dispatch(MemoryRecallViewAction.ChangeCard, context)
+                    }
+                },
                 shape = RectangleShape,
                 modifier = Modifier.padding(end = 6.dp)
             ) {
@@ -133,7 +140,12 @@ fun MemoryRecallScreen(
             }
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    viewModel.apply {
+                        dispatch(MemoryRecallViewAction.ClickHesitated, context)
+                        dispatch(MemoryRecallViewAction.ChangeCard, context)
+                    }
+                },
                 shape = RectangleShape,
                 modifier = Modifier.padding(end = 6.dp)
             ) {
@@ -141,7 +153,12 @@ fun MemoryRecallScreen(
             }
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    viewModel.apply {
+                        dispatch(MemoryRecallViewAction.ClickRecalled, context)
+                        dispatch(MemoryRecallViewAction.ChangeCard, context)
+                    }
+                },
                 shape = RectangleShape
             ) {
                 Text(text = stringResource(id = R.string.recalled))

@@ -6,4 +6,7 @@
     <string name="hesitated">Hesitated</string>
     <string name="recalled">Recalled</string>
     <string name="recall_completed">Recall Completed! No more cards to recall today.</string>
+    <string name="unfamiliar_toast">This question will show again in 1 minute.</string>
+    <string name="hesitated_toast">This question will show again in 10 minutes.</string>
+    <string name="recalled_toast">This question will show again in 3 days.</string>
 </resources>
