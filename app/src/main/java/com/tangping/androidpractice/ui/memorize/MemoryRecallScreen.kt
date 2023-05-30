@@ -62,13 +62,17 @@ fun MemoryRecallScreen(
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
     var url by remember { mutableStateOf("") }
+    var showPopup by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
         viewModel.viewEvents.collect {
             when (it) {
                 is MemoryRecallViewEvent.DisplayMessage -> {
                     Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+                is MemoryRecallViewEvent.DismissPopup -> {
+                    showPopup = false
+                    viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
                 }
             }
         }
@@ -184,25 +188,27 @@ fun MemoryRecallScreen(
             }
         }
 
-        SettingsPopup(
-            modifier = Modifier.constrainAs(popup) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-            },
-            url = url,
-            onUrlChange = {
-                url = it
-            },
-            onUseLocalCache = {},
-            onUseRemoteData = { url ->
-                viewModel.dispatch(
-                    MemoryRecallViewAction.UseRemoteData(url),
-                    context
-                )
-            }
-        )
+        if (showPopup) {
+            SettingsPopup(
+                modifier = Modifier.constrainAs(popup) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                },
+                url = url,
+                onUrlChange = {
+                    url = it
+                },
+                onUseLocalCache = {},
+                onUseRemoteData = { url ->
+                    viewModel.dispatch(
+                        MemoryRecallViewAction.UseRemoteData(url),
+                        context
+                    )
+                }
+            )
+        }
     }
 }
 

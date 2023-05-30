@@ -20,7 +20,7 @@ data class QuestionCard(
         dueTime += interval
     }
 
-    fun isDue() = System.currentTimeMillis() > dueTime
+    fun isDue() = System.currentTimeMillis() >= dueTime
 }
 
 enum class RecallStatus {
@@ -30,9 +30,7 @@ enum class RecallStatus {
 data class QuestionDeck(
     private val cards: MutableList<QuestionCard> = mutableListOf()
 ) {
-    fun addCard(card: QuestionCard) {
-        cards.add(card)
-    }
-
     fun getNextDueCard() = cards.find { it.isDue() }
+
+    fun getCardCount() = cards.size
 }

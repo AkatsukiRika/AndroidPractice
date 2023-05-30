@@ -1,6 +1,7 @@
 package com.tangping.androidpractice.ui.memorize
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     companion object {
+        const val TAG = "MemoryRecallViewModel"
         const val JSON_FILE_NAME = "question_deck.json"
         const val KEY_QUESTION_DECK = "question_deck"
         const val KEY_CARDS = "cards"
@@ -63,14 +65,14 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun changeCard(context: Context) {
-        viewStates.apply {
-            val nextDueCard = questionDeck.getNextDueCard()
-            viewStates = if (nextDueCard != null) {
-                viewStates.copy(currentCard = nextDueCard)
-            } else {
-                displayMessage(context.getString(R.string.recall_completed))
-                viewStates.copy(currentCard = null)
-            }
+        val nextDueCard = viewStates.questionDeck.getNextDueCard()
+        Log.i(TAG, "nextDueCard=$nextDueCard, question=${nextDueCard?.question}, cardCount=${viewStates.questionDeck.getCardCount()}")
+        viewStates = MemoryRecallViewState(
+            questionDeck = viewStates.questionDeck,
+            currentCard = nextDueCard
+        )
+        if (nextDueCard == null) {
+            displayMessage(context.getString(R.string.recall_completed))
         }
     }
 
@@ -86,6 +88,7 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
                 val saveResult = NetworkUtils.downloadAndSaveJson(context, url, JSON_FILE_NAME)
                 if (saveResult) {
                     updateQuestionDeck(context)
+                    _viewEvents.send(MemoryRecallViewEvent.DismissPopup)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -115,6 +118,7 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
                     cards = questionCards
                 )
             )
+            Log.i(TAG, "updateQuestionDeck, cardCount=${viewStates.questionDeck.getCardCount()}")
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -135,6 +139,7 @@ data class MemoryRecallViewState(
 
 sealed class MemoryRecallViewEvent {
     data class DisplayMessage(val message: String) : MemoryRecallViewEvent()
+    object DismissPopup : MemoryRecallViewEvent()
 }
 
 sealed class MemoryRecallViewAction {
