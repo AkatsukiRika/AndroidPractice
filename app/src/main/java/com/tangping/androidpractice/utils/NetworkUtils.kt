@@ -9,40 +9,48 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 object NetworkUtils {
-    suspend fun downloadAndSaveJson(context: Context, url: String, fileName: String) {
-        withContext(Dispatchers.IO) {
-            var connection: HttpURLConnection? = null
-            var inputStream: InputStream? = null
-            var outputStream: FileOutputStream? = null
+    suspend fun downloadAndSaveJson(context: Context, url: String, fileName: String) =
+        suspendCoroutine { continuation ->
+            val connection: HttpURLConnection?
+            val outputStream: FileOutputStream?
 
-            try {
-                val file = File(context.cacheDir, fileName)
+            val file = File(context.cacheDir, fileName)
 
-                connection = URL(url).openConnection() as HttpURLConnection
-                connection.connect()
+            connection = URL(url).openConnection() as HttpURLConnection
+            connection.connect()
 
-                if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                    throw IOException("HTTP error code: ${connection.responseCode}")
-                }
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                continuation.resumeWithException(
+                    IOException("HTTP error code: ${connection.responseCode}")
+                )
+            }
 
-                inputStream = connection.inputStream
-                outputStream = FileOutputStream(file)
+            val inputStream: InputStream? = connection.inputStream
+            outputStream = FileOutputStream(file)
 
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
+            val buffer = ByteArray(4096)
+            var bytesRead: Int
 
+            if (inputStream != null) {
                 while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                     outputStream.write(buffer, 0, bytesRead)
                 }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } finally {
-                outputStream?.close()
-                inputStream?.close()
-                connection?.disconnect()
+
+                outputStream.close()
+                inputStream.close()
+                connection.disconnect()
+
+                continuation.resume(true)
+            } else {
+                outputStream.close()
+                connection.disconnect()
+
+                continuation.resume(false)
             }
         }
-    }
 }

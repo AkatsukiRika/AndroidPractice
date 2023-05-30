@@ -12,15 +12,25 @@ import com.tangping.androidpractice.model.memorize.QuestionDeck
 import com.tangping.androidpractice.model.memorize.RecallStatus
 import com.tangping.androidpractice.utils.NetworkUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
+import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
 class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     companion object {
         const val JSON_FILE_NAME = "question_deck.json"
+        const val KEY_QUESTION_DECK = "question_deck"
+        const val KEY_CARDS = "cards"
+        const val KEY_QUESTION = "question"
+        const val KEY_ANSWER = "answer"
+        const val KEY_DUE_TIME = "due_time"
     }
 
     var viewStates by mutableStateOf(MemoryRecallViewState())
@@ -71,8 +81,42 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun useRemoteData(context: Context, url: String) {
-        viewModelScope.launch {
-            NetworkUtils.downloadAndSaveJson(context, url, JSON_FILE_NAME)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val saveResult = NetworkUtils.downloadAndSaveJson(context, url, JSON_FILE_NAME)
+                if (saveResult) {
+                    updateQuestionDeck(context)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun updateQuestionDeck(context: Context) {
+        val jsonFile = File(context.cacheDir, JSON_FILE_NAME)
+        try {
+            val jsonString = jsonFile.bufferedReader().use {
+                it.readText()
+            }
+            val jsonObject = JSONObject(jsonString)
+            val questionDeck = jsonObject.getJSONObject(KEY_QUESTION_DECK)
+            val cards = questionDeck.getJSONArray(KEY_CARDS)
+            val questionCards = mutableListOf<QuestionCard>()
+            for (index in 0 until cards.length()) {
+                val card = cards[index] as JSONObject
+                val question = card.getString(KEY_QUESTION)
+                val answer = card.getString(KEY_ANSWER)
+                val questionCard = QuestionCard(question, answer)
+                questionCards.add(questionCard)
+            }
+            viewStates = viewStates.copy(
+                questionDeck = QuestionDeck(
+                    cards = questionCards
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
