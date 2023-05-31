@@ -200,7 +200,12 @@ fun MemoryRecallScreen(
                 onUrlChange = {
                     url = it
                 },
-                onUseLocalCache = {},
+                onUseLocalCache = {
+                    viewModel.dispatch(
+                        MemoryRecallViewAction.UseLocalCache,
+                        context
+                    )
+                },
                 onUseRemoteData = { url ->
                     viewModel.dispatch(
                         MemoryRecallViewAction.UseRemoteData(url),

@@ -14,7 +14,6 @@ import com.tangping.androidpractice.model.memorize.RecallStatus
 import com.tangping.androidpractice.utils.NetworkUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -61,6 +60,9 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             is MemoryRecallViewAction.UseRemoteData -> {
                 useRemoteData(context, action.url)
             }
+            MemoryRecallViewAction.UseLocalCache -> {
+                useLocalCache(context)
+            }
         }
     }
 
@@ -93,6 +95,17 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun useLocalCache(context: Context) {
+        if (File(context.cacheDir, JSON_FILE_NAME).exists().not()) {
+            displayMessage(context.getString(R.string.no_local_cache))
+            return
+        }
+        viewModelScope.launch(Dispatchers.Main) {
+            updateQuestionDeck(context)
+            _viewEvents.send(MemoryRecallViewEvent.DismissPopup)
         }
     }
 
@@ -148,4 +161,5 @@ sealed class MemoryRecallViewAction {
     object ClickHesitated : MemoryRecallViewAction()
     object ClickRecalled : MemoryRecallViewAction()
     data class UseRemoteData(val url: String) : MemoryRecallViewAction()
+    object UseLocalCache : MemoryRecallViewAction()
 }

@@ -12,4 +12,5 @@
     <string name="memorize_popup">Input JSON file URL or use local cache:</string>
     <string name="use_local_cache">Use local cache</string>
     <string name="use_remote_data">Use remote data</string>
+    <string name="no_local_cache">No available local cache, please download first.</string>
 </resources>
