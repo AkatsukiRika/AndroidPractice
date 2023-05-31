@@ -49,20 +49,22 @@ import com.tangping.androidpractice.utils.StringUtils
 import kotlinx.coroutines.delay
 
 interface MemoryRecallScreenCallback {
-    fun onBtnCloseClick()
+    fun onNavigateBack()
 }
 
 @Composable
 fun MemoryRecallScreen(
     callback: MemoryRecallScreenCallback? = null,
     viewModel: MemoryRecallViewModel = hiltViewModel(),
-    defaultShowPopup: Boolean = true
+    defaultShowPopup: Boolean = true,
+    defaultShowCancelDialog: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
     var url by remember { mutableStateOf("") }
     var showPopup by rememberSaveable { mutableStateOf(defaultShowPopup) }
     var needRefreshDueText by rememberSaveable { mutableStateOf(false) }
+    var showCancelDialog by rememberSaveable { mutableStateOf(defaultShowCancelDialog) }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -88,11 +90,13 @@ fun MemoryRecallScreen(
         .background(darkBackground)
         .fillMaxSize()
     ) {
-        val (btnClose, mainArea, controlArea, popup) = createRefs()
+        val (btnClose, mainArea, controlArea, popup, cancelDialog) = createRefs()
 
         IconButton(
             onClick = {
-                callback?.onBtnCloseClick()
+                if (!showPopup) {
+                    showCancelDialog = true
+                }
             },
             modifier = Modifier.constrainAs(btnClose) {
                 top.linkTo(parent.top)
@@ -188,6 +192,20 @@ fun MemoryRecallScreen(
                         MemoryRecallViewAction.UseRemoteData(url),
                         context
                     )
+                }
+            )
+        }
+
+        if (showCancelDialog) {
+            CancelDialog(
+                modifier = Modifier.constrainAs(cancelDialog) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                },
+                onCancel = {
+                    showCancelDialog = false
                 }
             )
         }
@@ -344,7 +362,44 @@ private fun SettingsPopup(
 }
 
 @Composable
+private fun CancelDialog(
+    modifier: Modifier,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .wrapContentSize()
+            .background(
+                darkBackground,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.cancel_dialog_tip),
+            color = Color.White
+        )
+
+        Row(modifier = Modifier.padding(top = 6.dp)) {
+            Button(
+                onClick = {
+                    onCancel.invoke()
+                },
+                modifier = Modifier.padding(end = 6.dp)
+            ) {
+                Text(text = stringResource(id = R.string.cancel))
+            }
+
+            Button(onClick = { /*TODO*/ }) {
+                Text(text = stringResource(id = R.string.confirm))
+            }
+        }
+    }
+}
+
+@Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewMemoryRecallScreen() {
-    MemoryRecallScreen(defaultShowPopup = false)
+    MemoryRecallScreen(defaultShowPopup = false, defaultShowCancelDialog = true)
 }

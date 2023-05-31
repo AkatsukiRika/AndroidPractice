@@ -14,4 +14,7 @@
     <string name="use_remote_data">Use remote data</string>
     <string name="no_local_cache">No available local cache, please download first.</string>
     <string name="due_time">Due Time</string>
+    <string name="cancel_dialog_tip">Save current progress and exit?</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
 </resources>

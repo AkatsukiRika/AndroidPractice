@@ -51,7 +51,7 @@ fun TPNavHost(
 
         composable(route = MemoryRecall.route) {
             val callback = object : MemoryRecallScreenCallback {
-                override fun onBtnCloseClick() {
+                override fun onNavigateBack() {
                     navController.popBackStack(route = HomeScreen.route, inclusive = false)
                 }
             }
