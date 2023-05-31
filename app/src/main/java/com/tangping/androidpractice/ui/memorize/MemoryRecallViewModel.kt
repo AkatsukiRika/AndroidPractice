@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.model.memorize.QuestionDeck
@@ -19,6 +21,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.lang.Exception
 import javax.inject.Inject
 
@@ -62,6 +66,9 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             }
             MemoryRecallViewAction.UseLocalCache -> {
                 useLocalCache(context)
+            }
+            MemoryRecallViewAction.SaveQuestionDeck -> {
+                saveQuestionDeck(context)
             }
         }
     }
@@ -129,7 +136,8 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
                 val card = cards[index] as JSONObject
                 val question = card.getString(KEY_QUESTION)
                 val answer = card.getString(KEY_ANSWER)
-                val questionCard = QuestionCard(question, answer)
+                val dueTime = card.optLong(KEY_DUE_TIME, System.currentTimeMillis())
+                val questionCard = QuestionCard(question, answer, dueTime)
                 questionCards.add(questionCard)
             }
             viewStates = viewStates.copy(
@@ -138,6 +146,20 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
                 )
             )
             Log.i(TAG, "updateQuestionDeck, cardCount=${viewStates.questionDeck.getCardCount()}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun saveQuestionDeck(context: Context) {
+        val jsonFile = File(context.cacheDir, JSON_FILE_NAME)
+        try {
+            val gson = Gson()
+            val json = JsonObject()
+            json.add(KEY_QUESTION_DECK, gson.toJsonTree(viewStates.questionDeck))
+            val outputStreamWriter = OutputStreamWriter(FileOutputStream(jsonFile))
+            outputStreamWriter.write(json.toString())
+            outputStreamWriter.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -169,4 +191,5 @@ sealed class MemoryRecallViewAction {
     object ClickRecalled : MemoryRecallViewAction()
     data class UseRemoteData(val url: String) : MemoryRecallViewAction()
     object UseLocalCache : MemoryRecallViewAction()
+    object SaveQuestionDeck : MemoryRecallViewAction()
 }

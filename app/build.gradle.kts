@@ -74,4 +74,5 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.constraintlayout.compose)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.gson)
 }

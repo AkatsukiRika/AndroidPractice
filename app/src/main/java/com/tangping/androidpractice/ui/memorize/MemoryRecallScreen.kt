@@ -96,6 +96,8 @@ fun MemoryRecallScreen(
             onClick = {
                 if (!showPopup) {
                     showCancelDialog = true
+                } else {
+                    callback?.onNavigateBack()
                 }
             },
             modifier = Modifier.constrainAs(btnClose) {
@@ -206,6 +208,13 @@ fun MemoryRecallScreen(
                 },
                 onCancel = {
                     showCancelDialog = false
+                },
+                onConfirm = {
+                    viewModel.dispatch(
+                        MemoryRecallViewAction.SaveQuestionDeck,
+                        context
+                    )
+                    callback?.onNavigateBack()
                 }
             )
         }
@@ -364,7 +373,8 @@ private fun SettingsPopup(
 @Composable
 private fun CancelDialog(
     modifier: Modifier,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -391,7 +401,9 @@ private fun CancelDialog(
                 Text(text = stringResource(id = R.string.cancel))
             }
 
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = {
+                onConfirm.invoke()
+            }) {
                 Text(text = stringResource(id = R.string.confirm))
             }
         }

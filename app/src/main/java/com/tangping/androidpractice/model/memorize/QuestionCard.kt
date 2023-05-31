@@ -1,8 +1,11 @@
 package com.tangping.androidpractice.model.memorize
 
+import com.google.gson.annotations.SerializedName
+
 data class QuestionCard(
     val question: String,
     val answer: String,
+    @SerializedName("due_time")
     var dueTime: Long = System.currentTimeMillis()
 ) {
     companion object {
