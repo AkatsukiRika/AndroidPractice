@@ -1,6 +1,8 @@
 package com.tangping.androidpractice.ui.memorize
 
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +46,7 @@ import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
 import com.tangping.androidpractice.utils.StringUtils
+import kotlinx.coroutines.delay
 
 interface MemoryRecallScreenCallback {
     fun onBtnCloseClick()
@@ -59,6 +62,7 @@ fun MemoryRecallScreen(
     val context = LocalContext.current
     var url by remember { mutableStateOf("") }
     var showPopup by rememberSaveable { mutableStateOf(defaultShowPopup) }
+    var needRefreshDueText by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -68,6 +72,12 @@ fun MemoryRecallScreen(
                 }
                 is MemoryRecallViewEvent.DismissPopup -> {
                     showPopup = false
+                    viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
+                }
+                is MemoryRecallViewEvent.RefreshDueTime -> {
+                    needRefreshDueText = true
+                    delay(1000)
+                    needRefreshDueText = false
                     viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
                 }
             }
@@ -104,7 +114,8 @@ fun MemoryRecallScreen(
                     start.linkTo(parent.start)
                     height = Dimension.fillToConstraints
                 },
-            currentCard = viewStates.currentCard
+            currentCard = viewStates.currentCard,
+            needRefreshDueText = needRefreshDueText
         )
 
         Row(
@@ -122,7 +133,6 @@ fun MemoryRecallScreen(
                 onClick = {
                     viewModel.apply {
                         dispatch(MemoryRecallViewAction.ClickUnfamiliar, context)
-                        dispatch(MemoryRecallViewAction.ChangeCard, context)
                     }
                 },
                 shape = RectangleShape,
@@ -135,7 +145,6 @@ fun MemoryRecallScreen(
                 onClick = {
                     viewModel.apply {
                         dispatch(MemoryRecallViewAction.ClickHesitated, context)
-                        dispatch(MemoryRecallViewAction.ChangeCard, context)
                     }
                 },
                 shape = RectangleShape,
@@ -148,7 +157,6 @@ fun MemoryRecallScreen(
                 onClick = {
                     viewModel.apply {
                         dispatch(MemoryRecallViewAction.ClickRecalled, context)
-                        dispatch(MemoryRecallViewAction.ChangeCard, context)
                     }
                 },
                 shape = RectangleShape
@@ -189,7 +197,8 @@ fun MemoryRecallScreen(
 @Composable
 private fun QuestionAndAnswerColumn(
     modifier: Modifier,
-    currentCard: QuestionCard? = null
+    currentCard: QuestionCard? = null,
+    needRefreshDueText: Boolean
 ) {
     Column(
         modifier = modifier
@@ -225,16 +234,16 @@ private fun QuestionAndAnswerColumn(
                     thickness = 1.dp
                 )
 
-                Text(
-                    text = "${stringResource(id = R.string.due_time)}: ${StringUtils.convertTimestampToString(currentCard.dueTime)}",
-                    color = Color.LightGray,
+                DueTimeText(
                     modifier = Modifier
                         .constrainAs(dueTime) {
                             top.linkTo(divider.bottom)
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
-                        }
+                        },
+                    dueTimeString = "${stringResource(id = R.string.due_time)}: ${StringUtils.convertTimestampToString(currentCard.dueTime)}",
+                    needRefresh = needRefreshDueText
                 )
             }
         }
@@ -260,6 +269,25 @@ private fun QuestionAndAnswerColumn(
             )
         }
     }
+}
+
+@Composable
+private fun DueTimeText(
+    modifier: Modifier,
+    dueTimeString: String,
+    needRefresh: Boolean
+) {
+    val color by animateColorAsState(
+        targetValue = if (needRefresh) Color.Green else Color.LightGray,
+        animationSpec = tween(durationMillis = 500),
+        label = "dueTimeColor"
+    )
+
+    Text(
+        text = dueTimeString,
+        color = color,
+        modifier = modifier
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

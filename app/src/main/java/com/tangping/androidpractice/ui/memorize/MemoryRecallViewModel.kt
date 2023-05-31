@@ -47,15 +47,15 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             }
             MemoryRecallViewAction.ClickUnfamiliar -> {
                 viewStates.currentCard?.updateDueTime(RecallStatus.UNFAMILIAR)
-                displayMessage(context.getString(R.string.unfamiliar_toast))
+                refreshDueTime()
             }
             MemoryRecallViewAction.ClickHesitated -> {
                 viewStates.currentCard?.updateDueTime(RecallStatus.HESITATED)
-                displayMessage(context.getString(R.string.hesitated_toast))
+                refreshDueTime()
             }
             MemoryRecallViewAction.ClickRecalled -> {
                 viewStates.currentCard?.updateDueTime(RecallStatus.RECALLED)
-                displayMessage(context.getString(R.string.recalled_toast))
+                refreshDueTime()
             }
             is MemoryRecallViewAction.UseRemoteData -> {
                 useRemoteData(context, action.url)
@@ -81,6 +81,12 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
     private fun displayMessage(message: String) {
         viewModelScope.launch {
             _viewEvents.send(MemoryRecallViewEvent.DisplayMessage(message))
+        }
+    }
+
+    private fun refreshDueTime() {
+        viewModelScope.launch {
+            _viewEvents.send(MemoryRecallViewEvent.RefreshDueTime)
         }
     }
 
@@ -153,6 +159,7 @@ data class MemoryRecallViewState(
 sealed class MemoryRecallViewEvent {
     data class DisplayMessage(val message: String) : MemoryRecallViewEvent()
     object DismissPopup : MemoryRecallViewEvent()
+    object RefreshDueTime : MemoryRecallViewEvent()
 }
 
 sealed class MemoryRecallViewAction {
