@@ -18,4 +18,6 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="create_memory_cards">Create Memory Cards</string>
+    <string name="select_file">Select JSON file to modify</string>
+    <string name="create_new_file">Create new file</string>
 </resources>
