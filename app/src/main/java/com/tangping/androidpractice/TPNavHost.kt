@@ -12,6 +12,8 @@ import com.tangping.androidpractice.ui.home.HomeScreen
 import com.tangping.androidpractice.ui.home.HomeScreenCallback
 import com.tangping.androidpractice.ui.memorize.MemoryRecallScreen
 import com.tangping.androidpractice.ui.memorize.MemoryRecallScreenCallback
+import com.tangping.androidpractice.ui.memorize.create.CreateMemoryCardsCallback
+import com.tangping.androidpractice.ui.memorize.create.CreateMemoryCardsScreen
 
 @Composable
 fun TPNavHost(
@@ -36,6 +38,12 @@ fun TPNavHost(
                         launchSingleTop = true
                     }
                 }
+
+                override fun onCreateMemoryCardsClick() {
+                    navController.navigate(CreateMemoryCards.route) {
+                        launchSingleTop = true
+                    }
+                }
             }
             HomeScreen(callback)
         }
@@ -56,6 +64,15 @@ fun TPNavHost(
                 }
             }
             MemoryRecallScreen(callback)
+        }
+
+        composable(route = CreateMemoryCards.route) {
+            val callback = object : CreateMemoryCardsCallback {
+                override fun onNavigateBack() {
+                    navController.popBackStack(route = HomeScreen.route, inclusive = false)
+                }
+            }
+            CreateMemoryCardsScreen(callback)
         }
     }
 }
