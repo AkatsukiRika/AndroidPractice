@@ -22,4 +22,6 @@
     <string name="create_new_file">Create new file</string>
     <string name="new_file_popup">Input new file name</string>
     <string name="default_new_file_name">.json</string>
+    <string name="should_end_with_json">File name should end with \".json\"</string>
+    <string name="overwrite">Overwrite</string>
 </resources>

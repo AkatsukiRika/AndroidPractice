@@ -1,6 +1,7 @@
 package com.tangping.androidpractice.ui.memorize.create
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,8 +73,24 @@ fun CreateMemoryCardsScreen(
         )
         newList
     }
-    var fileName by remember {
+    var fileName by rememberSaveable {
         mutableStateOf(context.getString(R.string.default_new_file_name))
+    }
+    var showFileSelector by rememberSaveable { mutableStateOf(true) }
+    var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
+
+    LaunchedEffect(Unit) {
+        viewModel.viewEvents.collect {
+            when (it) {
+                is CreateMemoryCardsEvent.ShowToast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+                is CreateMemoryCardsEvent.DismissNewFilePopup -> {
+                    showNewFilePopup = false
+                    showFileSelector = false
+                }
+            }
+        }
     }
 
     ConstraintLayout(
@@ -82,8 +99,6 @@ fun CreateMemoryCardsScreen(
             .fillMaxSize()
     ) {
         val (btnClose, btnDone, fileSelector, newFilePopup) = createRefs()
-        var showFileSelector by rememberSaveable { mutableStateOf(true) }
-        var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -138,7 +153,14 @@ fun CreateMemoryCardsScreen(
                 },
                 onCancel = {
                     showNewFilePopup = false
-                }
+                },
+                onConfirm = { fileName ->
+                    viewModel.dispatch(
+                        CreateMemoryCardsAction.CreateNewFile(fileName),
+                        context
+                    )
+                },
+                existingFiles = jsonFiles.filter { it.endsWith(CreateMemoryCardsViewModel.JSON_SUFFIX) }
             )
         }
     }
@@ -259,7 +281,9 @@ private fun NewFilePopup(
     modifier: Modifier,
     fileName: String,
     onFileNameChange: (String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onConfirm: (String) -> Unit,
+    existingFiles: List<String>
 ) {
     Column(
         modifier = modifier
@@ -283,7 +307,9 @@ private fun NewFilePopup(
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.DarkGray,
-                textColor = Color.Green
+                textColor = if (existingFiles.contains(fileName)) {
+                    Color.Red
+                } else Color.Green
             ),
             textStyle = LocalTextStyle.current.copy(
                 textAlign = TextAlign.Center,
@@ -303,9 +329,13 @@ private fun NewFilePopup(
                 )
             }
 
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = {
+                onConfirm.invoke(fileName)
+            }) {
                 Text(
-                    text = stringResource(id = R.string.confirm),
+                    text = stringResource(
+                        id = if (existingFiles.contains(fileName)) R.string.overwrite else R.string.confirm
+                    ),
                     color = Color.White
                 )
             }
