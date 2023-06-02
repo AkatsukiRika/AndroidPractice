@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material.icons.sharp.Done
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,13 +35,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
+import com.tangping.androidpractice.ui.theme.colorGreen
+import com.tangping.androidpractice.ui.theme.colorRed
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
 
@@ -59,7 +62,8 @@ interface CreateMemoryCardsCallback {
 fun CreateMemoryCardsScreen(
     callback: CreateMemoryCardsCallback? = null,
     viewModel: CreateMemoryCardsViewModel = hiltViewModel(),
-    defaultShowNewFilePopup: Boolean = false
+    defaultShowNewFilePopup: Boolean = false,
+    defaultShowModifyPopup: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
@@ -78,6 +82,7 @@ fun CreateMemoryCardsScreen(
     }
     var showFileSelector by rememberSaveable { mutableStateOf(true) }
     var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
+    var showModifyPopup by rememberSaveable { mutableStateOf(defaultShowModifyPopup) }
 
     LaunchedEffect(Unit) {
         viewModel.viewEvents.collect {
@@ -98,7 +103,7 @@ fun CreateMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, fileSelector, newFilePopup) = createRefs()
+        val (btnClose, btnDone, fileSelector, newFilePopup, modifyPopup) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -134,6 +139,8 @@ fun CreateMemoryCardsScreen(
                 onFileSelect = { fileName ->
                     if (fileName == context.getString(R.string.create_new_file)) {
                         showNewFilePopup = true
+                    } else {
+                        showModifyPopup = true
                     }
                 }
             )
@@ -161,6 +168,20 @@ fun CreateMemoryCardsScreen(
                     )
                 },
                 existingFiles = jsonFiles.filter { it.endsWith(CreateMemoryCardsViewModel.JSON_SUFFIX) }
+            )
+        }
+
+        if (showModifyPopup) {
+            ModifyPopup(
+                modifier = Modifier.constrainAs(modifyPopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                onClose = {
+                    showModifyPopup = false
+                }
             )
         }
     }
@@ -344,7 +365,76 @@ private fun NewFilePopup(
 }
 
 @Composable
+private fun ModifyPopup(
+    modifier: Modifier,
+    onClose: () -> Unit
+) {
+    ConstraintLayout(
+        modifier = modifier
+            .wrapContentSize()
+            .background(
+                Color.DarkGray,
+                shape = RoundedCornerShape(12.dp)
+            )
+    ) {
+        val (title, buttons, btnClose) = createRefs()
+
+        Text(
+            text = stringResource(id = R.string.modify_popup),
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.constrainAs(title) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(parent.top, margin = 12.dp)
+            }.padding(horizontal = 48.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .constrainAs(buttons) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(title.bottom)
+                }
+                .padding(top = 12.dp, start = 48.dp, end = 48.dp, bottom = 6.dp)
+        ) {
+            Button(
+                onClick = { /*TODO*/ },
+                modifier = Modifier.padding(end = 24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = colorRed)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.delete),
+                    color = Color.White
+                )
+            }
+
+            Button(
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(containerColor = colorGreen)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.modify),
+                    color = Color.White
+                )
+            }
+        }
+
+        CloseButton(
+            modifier = Modifier.constrainAs(btnClose) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+            },
+            onClick = {
+                onClose.invoke()
+            }
+        )
+    }
+}
+
+@Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewCreateMemoryCardsScreen() {
-    CreateMemoryCardsScreen(defaultShowNewFilePopup = true)
+    CreateMemoryCardsScreen(defaultShowModifyPopup = true)
 }

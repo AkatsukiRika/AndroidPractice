@@ -12,3 +12,5 @@ val Pink40 = Color(0xFF7D5260)
 
 val darkBackground = Color(0xFF1e1e1e)
 val gayBackground = Color(0xFF2d2d2d)
+val colorRed = Color(0xFFcb1b45)
+val colorGreen = Color(0xFF00aa90)
