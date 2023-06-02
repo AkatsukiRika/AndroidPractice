@@ -80,6 +80,7 @@ fun CreateMemoryCardsScreen(
     var fileName by rememberSaveable {
         mutableStateOf(context.getString(R.string.default_new_file_name))
     }
+    var modifyFileName by rememberSaveable { mutableStateOf("") }
     var showFileSelector by rememberSaveable { mutableStateOf(true) }
     var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
     var showModifyPopup by rememberSaveable { mutableStateOf(defaultShowModifyPopup) }
@@ -93,6 +94,9 @@ fun CreateMemoryCardsScreen(
                 is CreateMemoryCardsEvent.DismissNewFilePopup -> {
                     showNewFilePopup = false
                     showFileSelector = false
+                }
+                is CreateMemoryCardsEvent.DismissModifyPopup -> {
+                    showModifyPopup = false
                 }
             }
         }
@@ -140,9 +144,11 @@ fun CreateMemoryCardsScreen(
                     if (fileName == context.getString(R.string.create_new_file)) {
                         showNewFilePopup = true
                     } else {
+                        modifyFileName = fileName
                         showModifyPopup = true
                     }
-                }
+                },
+                isModifyPopupVisible = showModifyPopup
             )
         }
 
@@ -181,6 +187,12 @@ fun CreateMemoryCardsScreen(
                 },
                 onClose = {
                     showModifyPopup = false
+                },
+                onDelete = {
+                    viewModel.dispatch(
+                        CreateMemoryCardsAction.DeleteFile(modifyFileName),
+                        context
+                    )
                 }
             )
         }
@@ -192,7 +204,8 @@ private fun FileSelector(
     modifier: Modifier,
     onInit: () -> Unit,
     jsonFiles: List<String>,
-    onFileSelect: (String) -> Unit
+    onFileSelect: (String) -> Unit,
+    isModifyPopupVisible: Boolean
 ) {
     LaunchedEffect(Unit) {
         onInit.invoke()
@@ -218,23 +231,29 @@ private fun FileSelector(
                 Log.i("CreateMemoryCardsScreen", "jsonFiles.size=${jsonFiles.size}, current=$it")
                 FileSelectorItem(
                     fileName = it,
-                    onClick = onFileSelect
+                    onClick = onFileSelect,
+                    isModifyPopupVisible = isModifyPopupVisible
                 )
             }
         }
     }
 }
 
+/**
+ * @param isModifyPopupVisible 当[ModifyPopup]可见时，屏蔽文件列表中文件的点击事件，防止「当前选中的文件名」改变导致删除了其他文件
+ */
 @Composable
 private fun FileSelectorItem(
     fileName: String,
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit,
+    isModifyPopupVisible: Boolean
 ) {
     Column(
-        modifier = Modifier
-            .clickable {
+        modifier = Modifier.clickable {
+            if (isModifyPopupVisible.not()) {
                 onClick.invoke(fileName)
             }
+        }
     ) {
         Row(
             modifier = Modifier
@@ -367,7 +386,8 @@ private fun NewFilePopup(
 @Composable
 private fun ModifyPopup(
     modifier: Modifier,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onDelete: () -> Unit
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -400,7 +420,9 @@ private fun ModifyPopup(
                 .padding(top = 12.dp, start = 48.dp, end = 48.dp, bottom = 6.dp)
         ) {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    onDelete.invoke()
+                },
                 modifier = Modifier.padding(end = 24.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colorRed)
             ) {

@@ -33,17 +33,23 @@ class CreateMemoryCardsViewModel @Inject constructor() : ViewModel() {
     fun dispatch(action: CreateMemoryCardsAction, context: Context) {
         when (action) {
             CreateMemoryCardsAction.ScanCacheDirectory -> {
-                viewModelScope.launch(Dispatchers.Main) {
-                    val jsonFiles = scanCacheDirectory(context)
-                    viewStates = viewStates.copy(
-                        jsonFiles = jsonFiles
-                    )
-                    Log.i(TAG, "jsonFiles size=${jsonFiles.size}")
-                }
+                updateJsonFiles(context)
             }
             is CreateMemoryCardsAction.CreateNewFile -> {
                 createNewFile(context, action.fileName)
             }
+            is CreateMemoryCardsAction.DeleteFile -> {
+                deleteFile(context, action.fileName)
+            }
+        }
+    }
+
+    private fun updateJsonFiles(context: Context) {
+        viewModelScope.launch(Dispatchers.Main) {
+            val jsonFiles = scanCacheDirectory(context)
+            viewStates = viewStates.copy(
+                jsonFiles = jsonFiles
+            )
         }
     }
 
@@ -84,6 +90,21 @@ class CreateMemoryCardsViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
+
+    private fun deleteFile(context: Context, fileName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val cacheDir = context.cacheDir
+            val file = File(cacheDir, fileName)
+            if (file.exists()) {
+                file.delete()
+            }
+
+            withContext(Dispatchers.Main) {
+                _viewEvents.send(CreateMemoryCardsEvent.DismissModifyPopup)
+            }
+            updateJsonFiles(context)
+        }
+    }
 }
 
 data class CreateMemoryCardsStates(
@@ -93,9 +114,11 @@ data class CreateMemoryCardsStates(
 sealed class CreateMemoryCardsEvent {
     data class ShowToast(val message: String) : CreateMemoryCardsEvent()
     object DismissNewFilePopup : CreateMemoryCardsEvent()
+    object DismissModifyPopup : CreateMemoryCardsEvent()
 }
 
 sealed class CreateMemoryCardsAction {
     object ScanCacheDirectory : CreateMemoryCardsAction()
     data class CreateNewFile(val fileName: String) : CreateMemoryCardsAction()
+    data class DeleteFile(val fileName: String) : CreateMemoryCardsAction()
 }
