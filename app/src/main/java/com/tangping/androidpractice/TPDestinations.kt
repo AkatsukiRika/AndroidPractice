@@ -23,3 +23,10 @@ object CreateMemoryCards : TPDestination {
     override val route: String
         get() = "create_memory_cards"
 }
+
+object ModifyMemoryCards : TPDestination {
+    const val PARAM_FILE_NAME = "fileName"
+
+    override val route: String
+        get() = "modify_memory_cards/{$PARAM_FILE_NAME}"
+}

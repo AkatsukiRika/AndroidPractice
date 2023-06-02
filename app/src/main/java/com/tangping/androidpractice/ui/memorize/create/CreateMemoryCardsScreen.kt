@@ -56,6 +56,8 @@ import com.tangping.androidpractice.ui.theme.gayBackground
 
 interface CreateMemoryCardsCallback {
     fun onNavigateBack()
+
+    fun goModifyScreen(fileName: String)
 }
 
 @Composable
@@ -81,7 +83,6 @@ fun CreateMemoryCardsScreen(
         mutableStateOf(context.getString(R.string.default_new_file_name))
     }
     var modifyFileName by rememberSaveable { mutableStateOf("") }
-    var showFileSelector by rememberSaveable { mutableStateOf(true) }
     var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
     var showModifyPopup by rememberSaveable { mutableStateOf(defaultShowModifyPopup) }
 
@@ -93,7 +94,10 @@ fun CreateMemoryCardsScreen(
                 }
                 is CreateMemoryCardsEvent.DismissNewFilePopup -> {
                     showNewFilePopup = false
-                    showFileSelector = false
+                    viewModel.dispatch(
+                        CreateMemoryCardsAction.ScanCacheDirectory,
+                        context
+                    )
                 }
                 is CreateMemoryCardsEvent.DismissModifyPopup -> {
                     showModifyPopup = false
@@ -107,7 +111,7 @@ fun CreateMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, fileSelector, newFilePopup, modifyPopup) = createRefs()
+        val (btnClose, fileSelector, newFilePopup, modifyPopup) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -119,38 +123,27 @@ fun CreateMemoryCardsScreen(
             }
         )
 
-        if (!showFileSelector) {
-            DoneButton(
-                modifier = Modifier.constrainAs(btnDone) {
-                    top.linkTo(parent.top)
-                    end.linkTo(parent.end)
+        FileSelector(
+            modifier = Modifier.constrainAs(fileSelector) {
+                top.linkTo(btnClose.bottom)
+                bottom.linkTo(parent.bottom)
+                start.linkTo(parent.start)
+                height = Dimension.fillToConstraints
+            },
+            onInit = {
+                viewModel.dispatch(CreateMemoryCardsAction.ScanCacheDirectory, context)
+            },
+            jsonFiles = jsonFiles,
+            onFileSelect = { fileName ->
+                if (fileName == context.getString(R.string.create_new_file)) {
+                    showNewFilePopup = true
+                } else {
+                    modifyFileName = fileName
+                    showModifyPopup = true
                 }
-            )
-        }
-
-        if (showFileSelector) {
-            FileSelector(
-                modifier = Modifier.constrainAs(fileSelector) {
-                    top.linkTo(btnClose.bottom)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(parent.start)
-                    height = Dimension.fillToConstraints
-                },
-                onInit = {
-                    viewModel.dispatch(CreateMemoryCardsAction.ScanCacheDirectory, context)
-                },
-                jsonFiles = jsonFiles,
-                onFileSelect = { fileName ->
-                    if (fileName == context.getString(R.string.create_new_file)) {
-                        showNewFilePopup = true
-                    } else {
-                        modifyFileName = fileName
-                        showModifyPopup = true
-                    }
-                },
-                isModifyPopupVisible = showModifyPopup
-            )
-        }
+            },
+            isModifyPopupVisible = showModifyPopup
+        )
 
         if (showNewFilePopup) {
             NewFilePopup(
@@ -193,6 +186,10 @@ fun CreateMemoryCardsScreen(
                         CreateMemoryCardsAction.DeleteFile(modifyFileName),
                         context
                     )
+                },
+                onModify = {
+                    callback?.goModifyScreen(modifyFileName)
+                    showModifyPopup = false
                 }
             )
         }
@@ -299,22 +296,6 @@ private fun CloseButton(
     }
 }
 
-@Composable
-private fun DoneButton(
-    modifier: Modifier
-) {
-    IconButton(
-        onClick = { /*TODO*/ },
-        modifier = modifier
-    ) {
-        Icon(
-            Icons.Sharp.Done,
-            contentDescription = "Done Button",
-            tint = Color.White
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NewFilePopup(
@@ -387,7 +368,8 @@ private fun NewFilePopup(
 private fun ModifyPopup(
     modifier: Modifier,
     onClose: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onModify: () -> Unit
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -433,7 +415,9 @@ private fun ModifyPopup(
             }
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    onModify.invoke()
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = colorGreen)
             ) {
                 Text(
