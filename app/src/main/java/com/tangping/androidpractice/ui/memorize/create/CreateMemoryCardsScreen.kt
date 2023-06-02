@@ -10,27 +10,36 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material.icons.sharp.Done
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,7 +57,8 @@ interface CreateMemoryCardsCallback {
 @Composable
 fun CreateMemoryCardsScreen(
     callback: CreateMemoryCardsCallback? = null,
-    viewModel: CreateMemoryCardsViewModel = hiltViewModel()
+    viewModel: CreateMemoryCardsViewModel = hiltViewModel(),
+    defaultShowNewFilePopup: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
@@ -56,8 +66,14 @@ fun CreateMemoryCardsScreen(
         val newList = mutableListOf<String>()
         newList.add(context.getString(R.string.create_new_file))
         newList.addAll(viewStates.jsonFiles)
-        Log.i("CreateMemoryCardsScreen", "newList size=${newList.size}, jsonFiles size=${viewStates.jsonFiles.size}")
+        Log.i(
+            "CreateMemoryCardsScreen",
+            "newList size=${newList.size}, jsonFiles size=${viewStates.jsonFiles.size}"
+        )
         newList
+    }
+    var fileName by remember {
+        mutableStateOf(context.getString(R.string.default_new_file_name))
     }
 
     ConstraintLayout(
@@ -65,8 +81,9 @@ fun CreateMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, fileSelector) = createRefs()
+        val (btnClose, btnDone, fileSelector, newFilePopup) = createRefs()
         var showFileSelector by rememberSaveable { mutableStateOf(true) }
+        var showNewFilePopup by rememberSaveable { mutableStateOf(defaultShowNewFilePopup) }
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -98,7 +115,30 @@ fun CreateMemoryCardsScreen(
                 onInit = {
                     viewModel.dispatch(CreateMemoryCardsAction.ScanCacheDirectory, context)
                 },
-                jsonFiles = jsonFiles
+                jsonFiles = jsonFiles,
+                onFileSelect = { fileName ->
+                    if (fileName == context.getString(R.string.create_new_file)) {
+                        showNewFilePopup = true
+                    }
+                }
+            )
+        }
+
+        if (showNewFilePopup) {
+            NewFilePopup(
+                modifier = Modifier.constrainAs(newFilePopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                fileName = fileName,
+                onFileNameChange = {
+                    fileName = it
+                },
+                onCancel = {
+                    showNewFilePopup = false
+                }
             )
         }
     }
@@ -108,7 +148,8 @@ fun CreateMemoryCardsScreen(
 private fun FileSelector(
     modifier: Modifier,
     onInit: () -> Unit,
-    jsonFiles: List<String>
+    jsonFiles: List<String>,
+    onFileSelect: (String) -> Unit
 ) {
     LaunchedEffect(Unit) {
         onInit.invoke()
@@ -132,30 +173,37 @@ private fun FileSelector(
         ) {
             items(jsonFiles) {
                 Log.i("CreateMemoryCardsScreen", "jsonFiles.size=${jsonFiles.size}, current=$it")
-                FileSelectorItem(fileName = it)
+                FileSelectorItem(
+                    fileName = it,
+                    onClick = onFileSelect
+                )
             }
         }
     }
 }
 
 @Composable
-private fun FileSelectorItem(fileName: String) {
+private fun FileSelectorItem(
+    fileName: String,
+    onClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .clickable {
-
+                onClick.invoke(fileName)
             }
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                if (fileName == stringResource(id = R.string.create_new_file)) {
-                    Color.DarkGray
-                } else {
-                    gayBackground
-                }
-            )
-            .padding(6.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    if (fileName == stringResource(id = R.string.create_new_file)) {
+                        Color.DarkGray
+                    } else {
+                        gayBackground
+                    }
+                )
+                .padding(6.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
@@ -205,8 +253,68 @@ private fun DoneButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NewFilePopup(
+    modifier: Modifier,
+    fileName: String,
+    onFileNameChange: (String) -> Unit,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .wrapContentSize()
+            .background(
+                Color.DarkGray,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.new_file_popup),
+            color = Color.White
+        )
+        TextField(
+            value = fileName,
+            onValueChange = {
+                onFileNameChange.invoke(it)
+            },
+            singleLine = true,
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.DarkGray,
+                textColor = Color.Green
+            ),
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontFamily = FontFamily.Monospace
+            )
+        )
+        Row {
+            Button(
+                onClick = {
+                    onCancel.invoke()
+                },
+                modifier = Modifier.padding(end = 24.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.cancel),
+                    color = Color.White
+                )
+            }
+
+            Button(onClick = { /*TODO*/ }) {
+                Text(
+                    text = stringResource(id = R.string.confirm),
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewCreateMemoryCardsScreen() {
-    CreateMemoryCardsScreen()
+    CreateMemoryCardsScreen(defaultShowNewFilePopup = true)
 }
