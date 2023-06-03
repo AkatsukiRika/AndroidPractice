@@ -27,4 +27,6 @@
     <string name="modify_popup">Choose action to apply</string>
     <string name="delete">Delete</string>
     <string name="modify">Modify</string>
+    <string name="question_here">Input question here</string>
+    <string name="answer_here">Input answer here</string>
 </resources>
