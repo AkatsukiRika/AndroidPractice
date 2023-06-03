@@ -6,12 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.utils.JsonUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
@@ -36,6 +34,15 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             is ModifyMemoryCardsAction.SetIndex -> {
                 setIndex(action.index)
             }
+            is ModifyMemoryCardsAction.ChangeQuestion -> {
+                changeQuestion(action.question)
+            }
+            is ModifyMemoryCardsAction.ChangeAnswer -> {
+                changeAnswer(action.answer)
+            }
+            is ModifyMemoryCardsAction.AddNewEntry -> {
+                addNewEntry(action.index)
+            }
         }
     }
 
@@ -52,33 +59,65 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             return
         }
         viewStates = viewStates.copy(
-            currentCard = viewStates.questionCards[index]
+            currentCard = viewStates.questionCards[index],
+            currentIndex = index
         )
-        viewStates.currentCard?.let {
-            viewModelScope.launch {
-                _viewEvents.send(ModifyMemoryCardsEvent.SetQuestionAnswer(
-                    index, it.question, it.answer
-                ))
-            }
+    }
+
+    private fun changeQuestion(question: String) {
+        val currentCard = viewStates.currentCard?.copy(question = question)
+        viewStates = viewStates.copy(
+            currentCard = currentCard
+        )
+    }
+
+    private fun changeAnswer(answer: String) {
+        val currentCard = viewStates.currentCard?.copy(answer = answer)
+        viewStates = viewStates.copy(
+            currentCard = currentCard
+        )
+    }
+
+    private fun addNewEntry(index: Int? = null) {
+        val newQuestionCard = QuestionCard(
+            question = "",
+            answer = ""
+        )
+        if (index == null) {
+            viewStates.questionCards.add(newQuestionCard)
+        } else {
+            viewStates.questionCards.add(index, newQuestionCard)
+        }
+        viewStates = viewStates.copy(
+            currentCard = newQuestionCard,
+            currentIndex = if (index == null) viewStates.currentIndex + 1 else viewStates.currentIndex
+        )
+    }
+
+    private fun printQuestionCards() {
+        viewStates.questionCards.forEach {
+            Log.i(TAG, "questionCard = $it")
         }
     }
 }
 
 data class ModifyMemoryCardsState(
     val questionCards: MutableList<QuestionCard> = mutableListOf(),
-    var currentCard: QuestionCard? = null
+    var currentCard: QuestionCard? = null,
+    var currentIndex: Int = 0
 )
 
 sealed class ModifyMemoryCardsEvent {
-    data class SetQuestionAnswer(
-        val index: Int,
-        val question: String,
-        val answer: String
-    ) : ModifyMemoryCardsEvent()
 }
 
 sealed class ModifyMemoryCardsAction {
     data class ReadJson(val fileName: String) : ModifyMemoryCardsAction()
 
     data class SetIndex(val index: Int) : ModifyMemoryCardsAction()
+
+    data class ChangeQuestion(val question: String) : ModifyMemoryCardsAction()
+
+    data class ChangeAnswer(val answer: String) : ModifyMemoryCardsAction()
+
+    data class AddNewEntry(val index: Int? = null) : ModifyMemoryCardsAction()
 }

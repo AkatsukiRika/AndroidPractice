@@ -26,9 +26,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,9 +53,6 @@ fun ModifyMemoryCardsScreen(
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
-    var question by rememberSaveable { mutableStateOf("") }
-    var answer by rememberSaveable { mutableStateOf("") }
-    var currentIndex by rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         fileName?.let {
@@ -69,13 +63,6 @@ fun ModifyMemoryCardsScreen(
         }
 
         viewModel.viewEvents.collect {
-            when (it) {
-                is ModifyMemoryCardsEvent.SetQuestionAnswer -> {
-                    currentIndex = it.index
-                    question = it.question
-                    answer = it.answer
-                }
-            }
         }
     }
 
@@ -103,17 +90,26 @@ fun ModifyMemoryCardsScreen(
                 end.linkTo(parent.end)
                 width = Dimension.wrapContent
             },
-            currentIndex = currentIndex + 1,
+            currentIndex = viewStates.currentIndex + 1,
             totalCount = viewStates.questionCards.size,
             onLastEntry = {
                 viewModel.dispatch(
-                    ModifyMemoryCardsAction.SetIndex(currentIndex - 1),
+                    ModifyMemoryCardsAction.SetIndex(viewStates.currentIndex - 1),
                     context
                 )
             },
             onNextEntry = {
                 viewModel.dispatch(
-                    ModifyMemoryCardsAction.SetIndex(currentIndex + 1),
+                    ModifyMemoryCardsAction.SetIndex(viewStates.currentIndex + 1),
+                    context
+                )
+            },
+            onAddEntry = {
+                val index = if (viewStates.currentIndex >= viewStates.questionCards.size - 1) {
+                    null
+                } else viewStates.currentIndex
+                viewModel.dispatch(
+                    ModifyMemoryCardsAction.AddNewEntry(index),
                     context
                 )
             }
@@ -133,13 +129,19 @@ fun ModifyMemoryCardsScreen(
                 start.linkTo(parent.start)
                 height = Dimension.fillToConstraints
             },
-            question = question,
+            question = viewStates.currentCard?.question ?: "",
             onQuestionChange = {
-                question = it
+                viewModel.dispatch(
+                    ModifyMemoryCardsAction.ChangeQuestion(question = it),
+                    context
+                )
             },
-            answer = answer,
+            answer = viewStates.currentCard?.answer ?: "",
             onAnswerChange = {
-                answer = it
+                viewModel.dispatch(
+                    ModifyMemoryCardsAction.ChangeAnswer(answer = it),
+                    context
+                )
             }
         )
     }
@@ -168,7 +170,8 @@ private fun QuestionSeeker(
     currentIndex: Int = 0,
     totalCount: Int = 0,
     onLastEntry: () -> Unit,
-    onNextEntry: () -> Unit
+    onNextEntry: () -> Unit,
+    onAddEntry: () -> Unit
 ) {
     Row(
         modifier = modifier.wrapContentWidth(),
@@ -220,7 +223,7 @@ private fun QuestionSeeker(
         }
 
         IconButton(
-            onClick = { /*TODO*/ },
+            onClick = { onAddEntry.invoke() },
             modifier = Modifier
                 .width(22.dp)
                 .padding(start = 3.dp)
