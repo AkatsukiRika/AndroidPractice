@@ -4,12 +4,19 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.sharp.AddCircle
 import androidx.compose.material.icons.sharp.Close
+import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material.icons.sharp.Done
+import androidx.compose.material.icons.sharp.KeyboardArrowLeft
+import androidx.compose.material.icons.sharp.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,17 +24,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
@@ -39,17 +51,40 @@ interface ModifyMemoryCardsCallback {
 @Composable
 fun ModifyMemoryCardsScreen(
     callback: ModifyMemoryCardsCallback? = null,
+    viewModel: ModifyMemoryCardsViewModel = hiltViewModel(),
     fileName: String? = null
 ) {
+    val viewStates = viewModel.viewStates
+    val context = LocalContext.current
     var question by rememberSaveable { mutableStateOf("") }
     var answer by rememberSaveable { mutableStateOf("") }
+    var currentIndex by rememberSaveable { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        fileName?.let {
+            viewModel.dispatch(
+                ModifyMemoryCardsAction.ReadJson(fileName),
+                context
+            )
+        }
+
+        viewModel.viewEvents.collect {
+            when (it) {
+                is ModifyMemoryCardsEvent.SetQuestionAnswer -> {
+                    currentIndex = it.index
+                    question = it.question
+                    answer = it.answer
+                }
+            }
+        }
+    }
 
     ConstraintLayout(
         modifier = Modifier
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, qaColumn) = createRefs()
+        val (btnClose, btnDone, qaColumn, seeker) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -58,6 +93,29 @@ fun ModifyMemoryCardsScreen(
             },
             onClick = {
                 callback?.onNavigateBack()
+            }
+        )
+
+        QuestionSeeker(
+            modifier = Modifier.constrainAs(seeker) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                width = Dimension.wrapContent
+            },
+            currentIndex = currentIndex + 1,
+            totalCount = viewStates.questionCards.size,
+            onLastEntry = {
+                viewModel.dispatch(
+                    ModifyMemoryCardsAction.SetIndex(currentIndex - 1),
+                    context
+                )
+            },
+            onNextEntry = {
+                viewModel.dispatch(
+                    ModifyMemoryCardsAction.SetIndex(currentIndex + 1),
+                    context
+                )
             }
         )
 
@@ -101,6 +159,78 @@ private fun CloseButton(
             contentDescription = "Close Button",
             tint = Color.White
         )
+    }
+}
+
+@Composable
+private fun QuestionSeeker(
+    modifier: Modifier,
+    currentIndex: Int = 0,
+    totalCount: Int = 0,
+    onLastEntry: () -> Unit,
+    onNextEntry: () -> Unit
+) {
+    Row(
+        modifier = modifier.wrapContentWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = { /*TODO*/ },
+            modifier = Modifier
+                .width(22.dp)
+                .padding(end = 3.dp)
+        ) {
+            Icon(
+                Icons.Sharp.Delete,
+                contentDescription = "Delete Entry",
+                tint = Color.White
+            )
+        }
+
+        IconButton(
+            onClick = { onLastEntry.invoke() },
+            modifier = Modifier
+                .width(25.dp)
+                .padding(end = 3.dp)
+        ) {
+            Icon(
+                Icons.Sharp.KeyboardArrowLeft,
+                contentDescription = "Last Entry",
+                tint = if (currentIndex == 0) Color.Gray else Color.White
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.entry_indicator, currentIndex, totalCount),
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+
+        IconButton(
+            onClick = { onNextEntry.invoke() },
+            modifier = Modifier
+                .width(25.dp)
+                .padding(start = 3.dp)
+        ) {
+            Icon(
+                Icons.Sharp.KeyboardArrowRight,
+                contentDescription = "Next Entry",
+                tint = Color.White
+            )
+        }
+
+        IconButton(
+            onClick = { /*TODO*/ },
+            modifier = Modifier
+                .width(22.dp)
+                .padding(start = 3.dp)
+        ) {
+            Icon(
+                Icons.Sharp.AddCircle,
+                contentDescription = "Create Entry",
+                tint = Color.White
+            )
+        }
     }
 }
 

@@ -94,7 +94,10 @@ fun TPNavHost(
                     navController.navigateUp()
                 }
             }
-            ModifyMemoryCardsScreen(callback, it.arguments?.getString(ModifyMemoryCards.PARAM_FILE_NAME))
+            ModifyMemoryCardsScreen(
+                callback,
+                fileName = it.arguments?.getString(ModifyMemoryCards.PARAM_FILE_NAME)
+            )
         }
     }
 }
