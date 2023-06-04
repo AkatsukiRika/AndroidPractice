@@ -6,10 +6,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.utils.JsonUtils
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
@@ -27,8 +30,10 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
         when (action) {
             is ModifyMemoryCardsAction.ReadJson -> {
                 readJson(context, action.fileName)
-                viewStates.questionCards.takeIf { it.isNotEmpty() }?.let {
+                if (viewStates.questionCards.isNotEmpty()) {
                     setIndex(0)
+                } else {
+                    addNewEntry(isEmptyList = true)
                 }
             }
             is ModifyMemoryCardsAction.SetIndex -> {
@@ -43,6 +48,15 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             is ModifyMemoryCardsAction.AddNewEntry -> {
                 addNewEntry(action.index)
             }
+            is ModifyMemoryCardsAction.DeleteEntry -> {
+                deleteEntry(context, action.index)
+            }
+        }
+    }
+
+    private fun showToast(message: String) {
+        viewModelScope.launch {
+            _viewEvents.send(ModifyMemoryCardsEvent.ShowToast(message))
         }
     }
 
@@ -78,7 +92,7 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
         )
     }
 
-    private fun addNewEntry(index: Int? = null) {
+    private fun addNewEntry(index: Int? = null, isEmptyList: Boolean = false) {
         val newQuestionCard = QuestionCard(
             question = "",
             answer = ""
@@ -90,8 +104,30 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
         }
         viewStates = viewStates.copy(
             currentCard = newQuestionCard,
-            currentIndex = if (index == null) viewStates.currentIndex + 1 else viewStates.currentIndex
+            currentIndex = if (index == null && !isEmptyList) {
+                viewStates.currentIndex + 1
+            } else viewStates.currentIndex
         )
+    }
+
+    private fun deleteEntry(context: Context, index: Int) {
+        if (index !in viewStates.questionCards.indices) {
+            Log.i(TAG, "index($index) is out of bound, size is ${viewStates.questionCards.size}")
+            return
+        }
+        if (viewStates.questionCards.size <= 1) {
+            showToast(context.getString(R.string.cannot_delete_only))
+            return
+        }
+        val nextIndex = if (index == viewStates.questionCards.size - 1) index - 1 else index
+        viewStates.questionCards.removeAt(index)
+        viewStates = viewStates.copy(
+            currentCard = viewStates.questionCards[nextIndex],
+            currentIndex = nextIndex
+        )
+        viewModelScope.launch {
+            _viewEvents.send(ModifyMemoryCardsEvent.DismissDeletePopup)
+        }
     }
 
     private fun printQuestionCards() {
@@ -108,6 +144,9 @@ data class ModifyMemoryCardsState(
 )
 
 sealed class ModifyMemoryCardsEvent {
+    data class ShowToast(val message: String) : ModifyMemoryCardsEvent()
+
+    object DismissDeletePopup : ModifyMemoryCardsEvent()
 }
 
 sealed class ModifyMemoryCardsAction {
@@ -120,4 +159,6 @@ sealed class ModifyMemoryCardsAction {
     data class ChangeAnswer(val answer: String) : ModifyMemoryCardsAction()
 
     data class AddNewEntry(val index: Int? = null) : ModifyMemoryCardsAction()
+
+    data class DeleteEntry(val index: Int) : ModifyMemoryCardsAction()
 }
