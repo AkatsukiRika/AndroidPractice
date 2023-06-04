@@ -80,6 +80,9 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
 
     private fun changeQuestion(question: String) {
         val currentCard = viewStates.currentCard?.copy(question = question)
+        currentCard?.let {
+            viewStates.questionCards[viewStates.currentIndex] = it
+        }
         viewStates = viewStates.copy(
             currentCard = currentCard
         )
@@ -87,6 +90,9 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
 
     private fun changeAnswer(answer: String) {
         val currentCard = viewStates.currentCard?.copy(answer = answer)
+        currentCard?.let {
+            viewStates.questionCards[viewStates.currentIndex] = it
+        }
         viewStates = viewStates.copy(
             currentCard = currentCard
         )
