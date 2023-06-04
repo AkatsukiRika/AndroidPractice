@@ -17,9 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Close
-import androidx.compose.material.icons.sharp.Done
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -41,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,10 +46,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
-import com.tangping.androidpractice.ui.theme.colorGreen
-import com.tangping.androidpractice.ui.theme.colorRed
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
+import com.tangping.androidpractice.widgets.ConfirmPopup
 
 interface CreateMemoryCardsCallback {
     fun onNavigateBack()
@@ -171,24 +167,27 @@ fun CreateMemoryCardsScreen(
         }
 
         if (showModifyPopup) {
-            ModifyPopup(
+            ConfirmPopup(
                 modifier = Modifier.constrainAs(modifyPopup) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-                onClose = {
-                    showModifyPopup = false
-                },
-                onDelete = {
+                titleText = stringResource(id = R.string.modify_popup),
+                riskyButtonText = stringResource(id = R.string.delete),
+                onRiskyButtonClick = {
                     viewModel.dispatch(
                         CreateMemoryCardsAction.DeleteFile(modifyFileName),
                         context
                     )
                 },
-                onModify = {
+                safeButtonText = stringResource(id = R.string.modify),
+                onSafeButtonClick = {
                     callback?.goModifyScreen(modifyFileName)
+                    showModifyPopup = false
+                },
+                onCloseButtonClick = {
                     showModifyPopup = false
                 }
             )
@@ -361,81 +360,6 @@ private fun NewFilePopup(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ModifyPopup(
-    modifier: Modifier,
-    onClose: () -> Unit,
-    onDelete: () -> Unit,
-    onModify: () -> Unit
-) {
-    ConstraintLayout(
-        modifier = modifier
-            .wrapContentSize()
-            .background(
-                Color.DarkGray,
-                shape = RoundedCornerShape(12.dp)
-            )
-    ) {
-        val (title, buttons, btnClose) = createRefs()
-
-        Text(
-            text = stringResource(id = R.string.modify_popup),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.constrainAs(title) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                top.linkTo(parent.top, margin = 12.dp)
-            }.padding(horizontal = 48.dp)
-        )
-
-        Row(
-            modifier = Modifier
-                .constrainAs(buttons) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(title.bottom)
-                }
-                .padding(top = 12.dp, start = 48.dp, end = 48.dp, bottom = 6.dp)
-        ) {
-            Button(
-                onClick = {
-                    onDelete.invoke()
-                },
-                modifier = Modifier.padding(end = 24.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorRed)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.delete),
-                    color = Color.White
-                )
-            }
-
-            Button(
-                onClick = {
-                    onModify.invoke()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = colorGreen)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.modify),
-                    color = Color.White
-                )
-            }
-        }
-
-        CloseButton(
-            modifier = Modifier.constrainAs(btnClose) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-            },
-            onClick = {
-                onClose.invoke()
-            }
-        )
     }
 }
 

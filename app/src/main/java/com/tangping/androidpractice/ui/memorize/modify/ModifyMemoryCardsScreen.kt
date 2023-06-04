@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.AddCircle
 import androidx.compose.material.icons.sharp.Close
@@ -20,8 +18,6 @@ import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material.icons.sharp.Done
 import androidx.compose.material.icons.sharp.KeyboardArrowLeft
 import androidx.compose.material.icons.sharp.KeyboardArrowRight
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,10 +43,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
-import com.tangping.androidpractice.ui.theme.colorGreen
-import com.tangping.androidpractice.ui.theme.colorRed
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
+import com.tangping.androidpractice.widgets.ConfirmPopup
 
 interface ModifyMemoryCardsCallback {
     fun onNavigateBack()
@@ -61,11 +56,13 @@ fun ModifyMemoryCardsScreen(
     callback: ModifyMemoryCardsCallback? = null,
     viewModel: ModifyMemoryCardsViewModel = hiltViewModel(),
     fileName: String? = null,
-    defaultShowDeletePopup: Boolean = false
+    defaultShowDeletePopup: Boolean = false,
+    defaultShowExitPopup: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
     var showDeletePopup by rememberSaveable { mutableStateOf(defaultShowDeletePopup) }
+    var showExitPopup by rememberSaveable { mutableStateOf(defaultShowExitPopup) }
 
     LaunchedEffect(Unit) {
         fileName?.let {
@@ -100,7 +97,7 @@ fun ModifyMemoryCardsScreen(
                 start.linkTo(parent.start)
             },
             onClick = {
-                callback?.onNavigateBack()
+                showExitPopup = true
             }
         )
 
@@ -179,22 +176,49 @@ fun ModifyMemoryCardsScreen(
         )
 
         if (showDeletePopup) {
-            DeletePopup(
+            ConfirmPopup(
                 modifier = Modifier.constrainAs(deletePopup) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-                onCancel = {
-                    showDeletePopup = false
-                },
-                onDelete = {
+                titleText = stringResource(id = R.string.confirm_delete),
+                riskyButtonText = stringResource(id = R.string.delete),
+                onRiskyButtonClick = {
                     viewModel.dispatch(
                         ModifyMemoryCardsAction.DeleteEntry(viewStates.currentIndex),
                         context
                     )
-                }
+                },
+                safeButtonText = stringResource(id = R.string.cancel) ,
+                onSafeButtonClick = {
+                    showDeletePopup = false
+                },
+                showCloseButton = false,
+                reverseButtons = true
+            )
+        }
+
+        if (showExitPopup) {
+            ConfirmPopup(
+                modifier = Modifier.constrainAs(deletePopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                titleText = stringResource(id = R.string.exit_popup),
+                riskyButtonText = stringResource(id = R.string.exit),
+                onRiskyButtonClick = {
+                    callback?.onNavigateBack()
+                },
+                safeButtonText = stringResource(id = R.string.cancel) ,
+                onSafeButtonClick = {
+                    showExitPopup = false
+                },
+                showCloseButton = false,
+                reverseButtons = true
             )
         }
     }
@@ -287,68 +311,6 @@ private fun QuestionSeeker(
                 contentDescription = "Create Entry",
                 tint = Color.White
             )
-        }
-    }
-}
-
-@Composable
-private fun DeletePopup(
-    modifier: Modifier,
-    onCancel: () -> Unit,
-    onDelete: () -> Unit
-) {
-    ConstraintLayout(
-        modifier = modifier
-            .wrapContentSize()
-            .background(
-                Color.DarkGray,
-                shape = RoundedCornerShape(12.dp)
-            )
-    ) {
-        val (title, buttons) = createRefs()
-
-        Text(
-            text = stringResource(id = R.string.confirm_delete),
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .constrainAs(title) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top, margin = 12.dp)
-                }
-                .padding(horizontal = 48.dp)
-        )
-
-        Row(
-            modifier = Modifier
-                .constrainAs(buttons) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(title.bottom)
-                }
-                .padding(top = 12.dp, start = 48.dp, end = 48.dp, bottom = 6.dp)
-        ) {
-            Button(
-                onClick = { onCancel.invoke() },
-                modifier = Modifier.padding(end = 24.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorGreen)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.cancel),
-                    color = Color.White
-                )
-            }
-
-            Button(
-                onClick = { onDelete.invoke() },
-                colors = ButtonDefaults.buttonColors(containerColor = colorRed)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.delete),
-                    color = Color.White
-                )
-            }
         }
     }
 }
@@ -479,5 +441,5 @@ private fun DueTimeText(
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewModifyMemoryCardsScreen() {
-    ModifyMemoryCardsScreen(defaultShowDeletePopup = true)
+    ModifyMemoryCardsScreen(defaultShowExitPopup = true)
 }
