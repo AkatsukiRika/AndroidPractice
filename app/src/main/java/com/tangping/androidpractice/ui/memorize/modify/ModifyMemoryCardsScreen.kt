@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.AddCircle
-import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material.icons.sharp.Done
 import androidx.compose.material.icons.sharp.KeyboardArrowLeft
@@ -28,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
+import com.tangping.androidpractice.widgets.CloseButton
 import com.tangping.androidpractice.widgets.ConfirmPopup
 
 interface ModifyMemoryCardsCallback {
@@ -256,23 +255,6 @@ fun ModifyMemoryCardsScreen(
                 reverseButtons = true
             )
         }
-    }
-}
-
-@Composable
-private fun CloseButton(
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        Icon(
-            Icons.Sharp.Close,
-            contentDescription = "Close Button",
-            tint = Color.White
-        )
     }
 }
 

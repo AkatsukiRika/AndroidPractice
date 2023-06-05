@@ -19,6 +19,11 @@ object MemoryRecall : TPDestination {
         get() = "memory_recall"
 }
 
+object MemorizePreparation : TPDestination {
+    override val route: String
+        get() = "memorize_preparation"
+}
+
 object CreateMemoryCards : TPDestination {
     override val route: String
         get() = "create_memory_cards"

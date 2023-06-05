@@ -17,6 +17,8 @@ import com.tangping.androidpractice.ui.memorize.create.CreateMemoryCardsCallback
 import com.tangping.androidpractice.ui.memorize.create.CreateMemoryCardsScreen
 import com.tangping.androidpractice.ui.memorize.modify.ModifyMemoryCardsCallback
 import com.tangping.androidpractice.ui.memorize.modify.ModifyMemoryCardsScreen
+import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationCallback
+import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationScreen
 
 @Composable
 fun TPNavHost(
@@ -37,7 +39,7 @@ fun TPNavHost(
                 }
 
                 override fun onMemoryRecallClick() {
-                    navController.navigate(MemoryRecall.route) {
+                    navController.navigate(MemorizePreparation.route) {
                         launchSingleTop = true
                     }
                 }
@@ -98,6 +100,17 @@ fun TPNavHost(
                 callback,
                 fileName = it.arguments?.getString(ModifyMemoryCards.PARAM_FILE_NAME)
             )
+        }
+
+        composable(
+            route = MemorizePreparation.route
+        ) {
+            val callback = object : MemorizePreparationCallback {
+                override fun onNavigateBack() {
+                    navController.popBackStack(route = HomeScreen.route, inclusive = false)
+                }
+            }
+            MemorizePreparationScreen(callback)
         }
     }
 }

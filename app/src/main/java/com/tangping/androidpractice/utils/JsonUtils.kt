@@ -3,6 +3,8 @@ package com.tangping.androidpractice.utils
 import android.content.Context
 import android.util.Log
 import com.tangping.androidpractice.model.memorize.QuestionCard
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -73,4 +75,16 @@ object JsonUtils {
             e.printStackTrace()
         }
     }
+
+    suspend fun scanCacheDirectory(context: Context) =
+        withContext(Dispatchers.IO) {
+            val cacheDir = context.cacheDir
+            val jsonFiles = mutableListOf<String>()
+            cacheDir?.listFiles()?.forEach { file ->
+                if (file.isFile && file.name.endsWith(".json")) {
+                    jsonFiles.add(file.name)
+                }
+            }
+            jsonFiles
+        }
 }

@@ -19,6 +19,7 @@
     <string name="cancel">Cancel</string>
     <string name="create_memory_cards">Create Memory Cards</string>
     <string name="select_file">Select JSON file to modify</string>
+    <string name="select_file_to_memorize">Select JSON file to memorize</string>
     <string name="create_new_file">Create new file</string>
     <string name="new_file_popup">Input new file name</string>
     <string name="default_new_file_name">.json</string>

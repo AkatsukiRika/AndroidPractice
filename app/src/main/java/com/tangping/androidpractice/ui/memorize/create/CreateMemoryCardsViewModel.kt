@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tangping.androidpractice.R
+import com.tangping.androidpractice.utils.JsonUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -46,24 +47,12 @@ class CreateMemoryCardsViewModel @Inject constructor() : ViewModel() {
 
     private fun updateJsonFiles(context: Context) {
         viewModelScope.launch(Dispatchers.Main) {
-            val jsonFiles = scanCacheDirectory(context)
+            val jsonFiles = JsonUtils.scanCacheDirectory(context)
             viewStates = viewStates.copy(
                 jsonFiles = jsonFiles
             )
         }
     }
-
-    private suspend fun scanCacheDirectory(context: Context) =
-        withContext(Dispatchers.IO) {
-            val cacheDir = context.cacheDir
-            val jsonFiles = mutableListOf<String>()
-            cacheDir?.listFiles()?.forEach { file ->
-                if (file.isFile && file.name.endsWith(".json")) {
-                    jsonFiles.add(file.name)
-                }
-            }
-            jsonFiles
-        }
 
     private fun showToast(message: String) {
         viewModelScope.launch {

@@ -15,13 +15,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
+import com.tangping.androidpractice.widgets.CloseButton
 import com.tangping.androidpractice.widgets.ConfirmPopup
 
 interface CreateMemoryCardsCallback {
@@ -274,23 +271,6 @@ private fun FileSelectorItem(
         Divider(
             color = darkBackground,
             thickness = 2.dp
-        )
-    }
-}
-
-@Composable
-private fun CloseButton(
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        Icon(
-            Icons.Sharp.Close,
-            contentDescription = "Close Button",
-            tint = Color.White
         )
     }
 }
