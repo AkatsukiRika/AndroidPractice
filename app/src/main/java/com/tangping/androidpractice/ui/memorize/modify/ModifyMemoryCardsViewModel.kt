@@ -10,9 +10,11 @@ import androidx.lifecycle.viewModelScope
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.utils.JsonUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
@@ -51,6 +53,9 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             is ModifyMemoryCardsAction.DeleteEntry -> {
                 deleteEntry(context, action.index)
             }
+            is ModifyMemoryCardsAction.SaveJson -> {
+                writeJson(context, action.fileName)
+            }
         }
     }
 
@@ -65,6 +70,15 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
         viewStates = viewStates.copy(
             questionCards = result.toMutableList()
         )
+    }
+
+    private fun writeJson(context: Context, fileName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            JsonUtils.writeJson(context, fileName, viewStates.questionCards)
+            withContext(Dispatchers.Main) {
+                _viewEvents.send(ModifyMemoryCardsEvent.DismissSavePopup)
+            }
+        }
     }
 
     private fun setIndex(index: Int) {
@@ -153,6 +167,8 @@ sealed class ModifyMemoryCardsEvent {
     data class ShowToast(val message: String) : ModifyMemoryCardsEvent()
 
     object DismissDeletePopup : ModifyMemoryCardsEvent()
+
+    object DismissSavePopup : ModifyMemoryCardsEvent()
 }
 
 sealed class ModifyMemoryCardsAction {
@@ -167,4 +183,6 @@ sealed class ModifyMemoryCardsAction {
     data class AddNewEntry(val index: Int? = null) : ModifyMemoryCardsAction()
 
     data class DeleteEntry(val index: Int) : ModifyMemoryCardsAction()
+
+    data class SaveJson(val fileName: String) : ModifyMemoryCardsAction()
 }

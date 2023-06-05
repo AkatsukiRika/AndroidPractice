@@ -32,6 +32,8 @@
     <string name="entry_indicator">%1$d / %2$d</string>
     <string name="confirm_delete">Are you sure?</string>
     <string name="cannot_delete_only">Cannot delete the only entry.</string>
-    <string name="exit_popup">Discard changes and exit?</string>
+    <string name="exit_popup">Discard unsaved changes and exit?</string>
     <string name="exit">Exit</string>
+    <string name="save_popup">Save changes to %1$s?</string>
+    <string name="save">Save</string>
 </resources>

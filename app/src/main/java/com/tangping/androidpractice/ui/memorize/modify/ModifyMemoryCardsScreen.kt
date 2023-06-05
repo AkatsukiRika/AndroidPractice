@@ -57,12 +57,14 @@ fun ModifyMemoryCardsScreen(
     viewModel: ModifyMemoryCardsViewModel = hiltViewModel(),
     fileName: String? = null,
     defaultShowDeletePopup: Boolean = false,
-    defaultShowExitPopup: Boolean = false
+    defaultShowExitPopup: Boolean = false,
+    defaultShowSavePopup: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
     var showDeletePopup by rememberSaveable { mutableStateOf(defaultShowDeletePopup) }
     var showExitPopup by rememberSaveable { mutableStateOf(defaultShowExitPopup) }
+    var showSavePopup by rememberSaveable { mutableStateOf(defaultShowSavePopup) }
 
     LaunchedEffect(Unit) {
         fileName?.let {
@@ -80,6 +82,9 @@ fun ModifyMemoryCardsScreen(
                 is ModifyMemoryCardsEvent.DismissDeletePopup -> {
                     showDeletePopup = false
                 }
+                is ModifyMemoryCardsEvent.DismissSavePopup -> {
+                    showSavePopup = false
+                }
             }
         }
     }
@@ -89,7 +94,7 @@ fun ModifyMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, qaColumn, seeker, deletePopup) = createRefs()
+        val (btnClose, btnDone, qaColumn, seeker, deletePopup, savePopup) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -149,6 +154,9 @@ fun ModifyMemoryCardsScreen(
             modifier = Modifier.constrainAs(btnDone) {
                 top.linkTo(parent.top)
                 end.linkTo(parent.end)
+            },
+            onClick = {
+                showSavePopup = true
             }
         )
 
@@ -216,6 +224,33 @@ fun ModifyMemoryCardsScreen(
                 safeButtonText = stringResource(id = R.string.cancel) ,
                 onSafeButtonClick = {
                     showExitPopup = false
+                },
+                showCloseButton = false,
+                reverseButtons = true
+            )
+        }
+
+        if (showSavePopup) {
+            ConfirmPopup(
+                modifier = Modifier.constrainAs(savePopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                titleText = stringResource(R.string.save_popup, fileName ?: ""),
+                riskyButtonText = stringResource(id = R.string.save),
+                onRiskyButtonClick = {
+                    fileName?.let {
+                        viewModel.dispatch(
+                            ModifyMemoryCardsAction.SaveJson(it),
+                            context
+                        )
+                    }
+                },
+                safeButtonText = stringResource(id = R.string.cancel),
+                onSafeButtonClick = {
+                    showSavePopup = false
                 },
                 showCloseButton = false,
                 reverseButtons = true
@@ -317,10 +352,11 @@ private fun QuestionSeeker(
 
 @Composable
 private fun DoneButton(
-    modifier: Modifier
+    modifier: Modifier,
+    onClick: () -> Unit
 ) {
     IconButton(
-        onClick = { /*TODO*/ },
+        onClick = { onClick.invoke() },
         modifier = modifier
     ) {
         Icon(
@@ -441,5 +477,5 @@ private fun DueTimeText(
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewModifyMemoryCardsScreen() {
-    ModifyMemoryCardsScreen(defaultShowExitPopup = true)
+    ModifyMemoryCardsScreen(defaultShowSavePopup = true)
 }

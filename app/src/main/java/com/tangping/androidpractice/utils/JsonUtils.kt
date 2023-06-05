@@ -3,8 +3,11 @@ package com.tangping.androidpractice.utils
 import android.content.Context
 import android.util.Log
 import com.tangping.androidpractice.model.memorize.QuestionCard
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.lang.Exception
 
 object JsonUtils {
@@ -41,6 +44,33 @@ object JsonUtils {
         } catch (e: Exception) {
             e.printStackTrace()
             return emptyList()
+        }
+    }
+
+    fun writeJson(context: Context, fileName: String, questionCards: List<QuestionCard>) {
+        val jsonFile = File(context.cacheDir, fileName)
+        if (jsonFile.exists().not()) {
+            Log.i(TAG, "jsonFile(${jsonFile.absolutePath}) does not exist!")
+            return
+        }
+        try {
+            val cards = JSONArray()
+            questionCards.forEach {
+                val card = JSONObject()
+                card.put(KEY_QUESTION, it.question)
+                card.put(KEY_ANSWER, it.answer)
+                card.put(KEY_DUE_TIME, it.dueTime)
+                cards.put(card)
+            }
+            val deck = JSONObject()
+            deck.put(KEY_CARDS, cards)
+            val jsonObject = JSONObject()
+            jsonObject.put(KEY_QUESTION_DECK, deck)
+            val outputStreamWriter = OutputStreamWriter(FileOutputStream(jsonFile))
+            outputStreamWriter.write(jsonObject.toString())
+            outputStreamWriter.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
