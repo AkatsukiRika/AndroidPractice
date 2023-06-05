@@ -1,5 +1,6 @@
 package com.tangping.androidpractice.ui.memorize
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -56,6 +57,7 @@ interface MemoryRecallScreenCallback {
 fun MemoryRecallScreen(
     callback: MemoryRecallScreenCallback? = null,
     viewModel: MemoryRecallViewModel = hiltViewModel(),
+    fileName: String? = null,
     defaultShowPopup: Boolean = true,
     defaultShowCancelDialog: Boolean = false
 ) {
@@ -67,6 +69,14 @@ fun MemoryRecallScreen(
     var showCancelDialog by rememberSaveable { mutableStateOf(defaultShowCancelDialog) }
 
     LaunchedEffect(Unit) {
+        if (fileName != null) {
+            showPopup = false
+            viewModel.dispatch(
+                MemoryRecallViewAction.UseLocalCache(fileName),
+                context
+            )
+        }
+
         viewModel.viewEvents.collect {
             when (it) {
                 is MemoryRecallViewEvent.DisplayMessage -> {
@@ -185,7 +195,7 @@ fun MemoryRecallScreen(
                 },
                 onUseLocalCache = {
                     viewModel.dispatch(
-                        MemoryRecallViewAction.UseLocalCache,
+                        MemoryRecallViewAction.UseLocalCache(),
                         context
                     )
                 },

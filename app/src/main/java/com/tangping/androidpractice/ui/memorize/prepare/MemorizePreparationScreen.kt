@@ -35,6 +35,8 @@ import com.tangping.androidpractice.widgets.CloseButton
 
 interface MemorizePreparationCallback {
     fun onNavigateBack()
+
+    fun goRecallScreen(fileName: String)
 }
 
 @Composable
@@ -82,7 +84,11 @@ fun MemorizePreparationScreen(
                 )
             },
             jsonFiles = jsonFiles,
-            onFileSelect = { fileName -> },
+            onFileSelect = { fileName ->
+                if (fileName != context.getString(R.string.use_remote_data)) {
+                    callback?.goRecallScreen(fileName)
+                }
+            },
         )
     }
 }

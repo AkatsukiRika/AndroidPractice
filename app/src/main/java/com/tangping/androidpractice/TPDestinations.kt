@@ -15,8 +15,10 @@ object ImageGallery : TPDestination {
 }
 
 object MemoryRecall : TPDestination {
+    const val PARAM_FILE_NAME = "fileName"
+
     override val route: String
-        get() = "memory_recall"
+        get() = "memory_recall/{$PARAM_FILE_NAME}"
 }
 
 object MemorizePreparation : TPDestination {

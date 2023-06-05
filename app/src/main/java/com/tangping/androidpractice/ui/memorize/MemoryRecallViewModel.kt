@@ -64,8 +64,8 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             is MemoryRecallViewAction.UseRemoteData -> {
                 useRemoteData(context, action.url)
             }
-            MemoryRecallViewAction.UseLocalCache -> {
-                useLocalCache(context)
+            is MemoryRecallViewAction.UseLocalCache -> {
+                useLocalCache(context, action.fileName)
             }
             MemoryRecallViewAction.SaveQuestionDeck -> {
                 saveQuestionDeck(context)
@@ -111,19 +111,19 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun useLocalCache(context: Context) {
-        if (File(context.cacheDir, JSON_FILE_NAME).exists().not()) {
+    private fun useLocalCache(context: Context, fileName: String? = null) {
+        if (File(context.cacheDir, fileName ?: JSON_FILE_NAME).exists().not()) {
             displayMessage(context.getString(R.string.no_local_cache))
             return
         }
         viewModelScope.launch(Dispatchers.Main) {
-            updateQuestionDeck(context)
+            updateQuestionDeck(context, fileName)
             _viewEvents.send(MemoryRecallViewEvent.DismissPopup)
         }
     }
 
-    private fun updateQuestionDeck(context: Context) {
-        val jsonFile = File(context.cacheDir, JSON_FILE_NAME)
+    private fun updateQuestionDeck(context: Context, fileName: String? = null) {
+        val jsonFile = File(context.cacheDir, fileName ?: JSON_FILE_NAME)
         try {
             val jsonString = jsonFile.bufferedReader().use {
                 it.readText()
@@ -190,6 +190,6 @@ sealed class MemoryRecallViewAction {
     object ClickHesitated : MemoryRecallViewAction()
     object ClickRecalled : MemoryRecallViewAction()
     data class UseRemoteData(val url: String) : MemoryRecallViewAction()
-    object UseLocalCache : MemoryRecallViewAction()
+    data class UseLocalCache(var fileName: String? = null) : MemoryRecallViewAction()
     object SaveQuestionDeck : MemoryRecallViewAction()
 }

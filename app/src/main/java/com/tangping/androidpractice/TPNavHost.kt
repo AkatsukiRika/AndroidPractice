@@ -62,13 +62,19 @@ fun TPNavHost(
             ImageGalleryScreen(callback)
         }
 
-        composable(route = MemoryRecall.route) {
+        composable(
+            route = MemoryRecall.route,
+            arguments = listOf(navArgument(MemoryRecall.PARAM_FILE_NAME) { type = NavType.StringType })
+        ) {
             val callback = object : MemoryRecallScreenCallback {
                 override fun onNavigateBack() {
                     navController.popBackStack(route = HomeScreen.route, inclusive = false)
                 }
             }
-            MemoryRecallScreen(callback)
+            MemoryRecallScreen(
+                callback,
+                fileName = it.arguments?.getString(MemoryRecall.PARAM_FILE_NAME)
+            )
         }
 
         composable(route = CreateMemoryCards.route) {
@@ -108,6 +114,13 @@ fun TPNavHost(
             val callback = object : MemorizePreparationCallback {
                 override fun onNavigateBack() {
                     navController.popBackStack(route = HomeScreen.route, inclusive = false)
+                }
+
+                override fun goRecallScreen(fileName: String) {
+                    val route = MemoryRecall.route.substringBeforeLast("/") + "/$fileName"
+                    navController.navigate(route) {
+                        launchSingleTop = true
+                    }
                 }
             }
             MemorizePreparationScreen(callback)
