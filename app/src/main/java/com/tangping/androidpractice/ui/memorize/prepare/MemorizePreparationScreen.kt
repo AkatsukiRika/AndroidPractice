@@ -1,5 +1,6 @@
 package com.tangping.androidpractice.ui.memorize.prepare
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +17,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +37,7 @@ import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
 import com.tangping.androidpractice.widgets.CloseButton
+import com.tangping.androidpractice.widgets.UrlPopup
 
 interface MemorizePreparationCallback {
     fun onNavigateBack()
@@ -42,7 +48,8 @@ interface MemorizePreparationCallback {
 @Composable
 fun MemorizePreparationScreen(
     callback: MemorizePreparationCallback? = null,
-    viewModel: MemorizePreparationViewModel = hiltViewModel()
+    viewModel: MemorizePreparationViewModel = hiltViewModel(),
+    defaultShowUrlPopup: Boolean = false
 ) {
     val context = LocalContext.current
     val viewStates = viewModel.viewStates
@@ -52,13 +59,31 @@ fun MemorizePreparationScreen(
         newList.addAll(viewStates.jsonFiles)
         newList
     }
+    var showUrlPopup by remember { mutableStateOf(defaultShowUrlPopup) }
+    var url by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.viewEvents.collect {
+            when (it) {
+                is MemorizePreparationEvent.GoRecall -> {
+                    callback?.goRecallScreen(it.fileName)
+                }
+                is MemorizePreparationEvent.DismissUrlPopup -> {
+                    showUrlPopup = false
+                }
+                is MemorizePreparationEvent.ShowToast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     ConstraintLayout(
         modifier = Modifier
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, fileSelector) = createRefs()
+        val (btnClose, fileSelector, urlPopup) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -87,9 +112,36 @@ fun MemorizePreparationScreen(
             onFileSelect = { fileName ->
                 if (fileName != context.getString(R.string.use_remote_data)) {
                     callback?.goRecallScreen(fileName)
+                } else {
+                    showUrlPopup = true
                 }
             },
         )
+
+        if (showUrlPopup) {
+            UrlPopup(
+                modifier = Modifier.constrainAs(urlPopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                url = url,
+                onUrlChange = {
+                    url = it
+                },
+                onConfirm = {
+                    viewModel.dispatch(
+                        MemorizePreparationAction.UseRemoteData(it),
+                        context
+                    )
+                },
+                onClose = {
+                    showUrlPopup = false
+                },
+                backgroundColor = gayBackground
+            )
+        }
     }
 }
 
@@ -170,5 +222,5 @@ private fun FileSelectorItem(
 @Composable
 @Preview(showBackground = true, showSystemUi = true)
 fun PreviewMemorizePreparationScreen() {
-    MemorizePreparationScreen()
+    MemorizePreparationScreen(defaultShowUrlPopup = true)
 }
