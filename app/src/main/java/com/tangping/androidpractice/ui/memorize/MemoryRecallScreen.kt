@@ -1,6 +1,5 @@
 package com.tangping.androidpractice.ui.memorize
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -18,17 +17,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,19 +53,15 @@ fun MemoryRecallScreen(
     callback: MemoryRecallScreenCallback? = null,
     viewModel: MemoryRecallViewModel = hiltViewModel(),
     fileName: String? = null,
-    defaultShowPopup: Boolean = true,
     defaultShowCancelDialog: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
-    var url by remember { mutableStateOf("") }
-    var showPopup by rememberSaveable { mutableStateOf(defaultShowPopup) }
     var needRefreshDueText by rememberSaveable { mutableStateOf(false) }
     var showCancelDialog by rememberSaveable { mutableStateOf(defaultShowCancelDialog) }
 
     LaunchedEffect(Unit) {
         if (fileName != null) {
-            showPopup = false
             viewModel.dispatch(
                 MemoryRecallViewAction.UseLocalCache(fileName),
                 context
@@ -83,7 +74,6 @@ fun MemoryRecallScreen(
                     Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                 }
                 is MemoryRecallViewEvent.DismissPopup -> {
-                    showPopup = false
                     viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
                 }
                 is MemoryRecallViewEvent.RefreshDueTime -> {
@@ -100,15 +90,11 @@ fun MemoryRecallScreen(
         .background(darkBackground)
         .fillMaxSize()
     ) {
-        val (btnClose, mainArea, controlArea, popup, cancelDialog) = createRefs()
+        val (btnClose, mainArea, controlArea, cancelDialog) = createRefs()
 
         IconButton(
             onClick = {
-                if (!showPopup) {
-                    showCancelDialog = true
-                } else {
-                    callback?.onNavigateBack()
-                }
+                showCancelDialog = true
             },
             modifier = Modifier.constrainAs(btnClose) {
                 top.linkTo(parent.top)
@@ -181,33 +167,6 @@ fun MemoryRecallScreen(
             }
         }
 
-        if (showPopup) {
-            SettingsPopup(
-                modifier = Modifier.constrainAs(popup) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                },
-                url = url,
-                onUrlChange = {
-                    url = it
-                },
-                onUseLocalCache = {
-                    viewModel.dispatch(
-                        MemoryRecallViewAction.UseLocalCache(),
-                        context
-                    )
-                },
-                onUseRemoteData = { url ->
-                    viewModel.dispatch(
-                        MemoryRecallViewAction.UseRemoteData(url),
-                        context
-                    )
-                }
-            )
-        }
-
         if (showCancelDialog) {
             CancelDialog(
                 modifier = Modifier.constrainAs(cancelDialog) {
@@ -221,7 +180,7 @@ fun MemoryRecallScreen(
                 },
                 onConfirm = {
                     viewModel.dispatch(
-                        MemoryRecallViewAction.SaveQuestionDeck,
+                        MemoryRecallViewAction.SaveQuestionDeck(fileName),
                         context
                     )
                     callback?.onNavigateBack()
@@ -327,59 +286,6 @@ private fun DueTimeText(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SettingsPopup(
-    modifier: Modifier,
-    url: String,
-    onUrlChange: (String) -> Unit,
-    onUseLocalCache: () -> Unit,
-    onUseRemoteData: (String) -> Unit
-) {
-    Column(
-        modifier = modifier
-            .wrapContentSize()
-            .background(
-                darkBackground,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(id = R.string.memorize_popup),
-            color = Color.White
-        )
-        TextField(
-            value = url,
-            onValueChange = {
-                onUrlChange.invoke(it)
-            },
-            singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = darkBackground,
-                textColor = Color.Green
-            )
-        )
-        Button(onClick = {
-            if (url.isEmpty()) {
-                onUseLocalCache.invoke()
-            } else {
-                onUseRemoteData.invoke(url)
-            }
-        }) {
-            Text(
-                text = if (url.isEmpty()) {
-                    stringResource(id = R.string.use_local_cache)
-                } else {
-                    stringResource(id = R.string.use_remote_data)
-                },
-                color = Color.White
-            )
-        }
-    }
-}
-
 @Composable
 private fun CancelDialog(
     modifier: Modifier,
@@ -423,5 +329,5 @@ private fun CancelDialog(
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewMemoryRecallScreen() {
-    MemoryRecallScreen(defaultShowPopup = false, defaultShowCancelDialog = true)
+    MemoryRecallScreen(defaultShowCancelDialog = true)
 }

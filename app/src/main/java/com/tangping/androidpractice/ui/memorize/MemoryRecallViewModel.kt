@@ -67,8 +67,8 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
             is MemoryRecallViewAction.UseLocalCache -> {
                 useLocalCache(context, action.fileName)
             }
-            MemoryRecallViewAction.SaveQuestionDeck -> {
-                saveQuestionDeck(context)
+            is MemoryRecallViewAction.SaveQuestionDeck -> {
+                saveQuestionDeck(context, action.fileName)
             }
         }
     }
@@ -151,8 +151,8 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun saveQuestionDeck(context: Context) {
-        val jsonFile = File(context.cacheDir, JSON_FILE_NAME)
+    private fun saveQuestionDeck(context: Context, fileName: String? = null) {
+        val jsonFile = File(context.cacheDir, fileName ?: JSON_FILE_NAME)
         try {
             val gson = Gson()
             val json = JsonObject()
@@ -191,5 +191,5 @@ sealed class MemoryRecallViewAction {
     object ClickRecalled : MemoryRecallViewAction()
     data class UseRemoteData(val url: String) : MemoryRecallViewAction()
     data class UseLocalCache(var fileName: String? = null) : MemoryRecallViewAction()
-    object SaveQuestionDeck : MemoryRecallViewAction()
+    data class SaveQuestionDeck(var fileName: String? = null) : MemoryRecallViewAction()
 }
