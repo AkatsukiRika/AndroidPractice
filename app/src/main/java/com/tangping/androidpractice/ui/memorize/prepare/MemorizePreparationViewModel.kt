@@ -47,19 +47,24 @@ class MemorizePreparationViewModel @Inject constructor() : ViewModel() {
             remoteCacheId.let {
                 SharedPreferenceUtils.putInt(context, SharedPreferenceUtils.REMOTE_CACHE_ID, remoteCacheId + 1)
             }
-            val saveResult = NetworkUtils.downloadAndSaveJson(context, url, fileName)
-            if (saveResult) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    _viewEvents.send(MemorizePreparationEvent.DismissUrlPopup)
-                    _viewEvents.send(MemorizePreparationEvent.GoRecall(fileName))
+            try {
+                val saveResult = NetworkUtils.downloadAndSaveJson(context, url, fileName)
+                if (saveResult) {
+                    viewModelScope.launch(Dispatchers.Main) {
+                        _viewEvents.send(MemorizePreparationEvent.DismissUrlPopup)
+                        _viewEvents.send(MemorizePreparationEvent.GoRecall(fileName))
+                    }
                 }
-            } else {
-                viewModelScope.launch(Dispatchers.Main) {
-                    _viewEvents.send(MemorizePreparationEvent.ShowToast(
-                        context.getString(R.string.fetch_remote_failure)
-                    ))
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast(context.getString(R.string.fetch_remote_failure))
             }
+        }
+    }
+
+    private fun showToast(message: String) {
+        viewModelScope.launch(Dispatchers.Main) {
+            _viewEvents.send(MemorizePreparationEvent.ShowToast(message))
         }
     }
 
