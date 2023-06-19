@@ -48,6 +48,9 @@ class MemoryRecallViewModel @Inject constructor() : ViewModel() {
         when (action) {
             MemoryRecallViewAction.ChangeCard -> {
                 changeCard(context)
+                viewModelScope.launch {
+                    _viewEvents.send(MemoryRecallViewEvent.HideAnswer)
+                }
             }
             MemoryRecallViewAction.ClickUnfamiliar -> {
                 viewStates.currentCard?.updateDueTime(RecallStatus.UNFAMILIAR)
@@ -182,6 +185,7 @@ sealed class MemoryRecallViewEvent {
     data class DisplayMessage(val message: String) : MemoryRecallViewEvent()
     object DismissPopup : MemoryRecallViewEvent()
     object RefreshDueTime : MemoryRecallViewEvent()
+    object HideAnswer : MemoryRecallViewEvent()
 }
 
 sealed class MemoryRecallViewAction {

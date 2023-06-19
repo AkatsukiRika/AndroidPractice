@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -59,6 +62,7 @@ fun MemoryRecallScreen(
     val context = LocalContext.current
     var needRefreshDueText by rememberSaveable { mutableStateOf(false) }
     var showCancelDialog by rememberSaveable { mutableStateOf(defaultShowCancelDialog) }
+    var showAnswer by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (fileName != null) {
@@ -81,6 +85,9 @@ fun MemoryRecallScreen(
                     delay(1000)
                     needRefreshDueText = false
                     viewModel.dispatch(MemoryRecallViewAction.ChangeCard, context)
+                }
+                is MemoryRecallViewEvent.HideAnswer -> {
+                    showAnswer = false
                 }
             }
         }
@@ -117,7 +124,11 @@ fun MemoryRecallScreen(
                     height = Dimension.fillToConstraints
                 },
             currentCard = viewStates.currentCard,
-            needRefreshDueText = needRefreshDueText
+            needRefreshDueText = needRefreshDueText,
+            showAnswer = showAnswer,
+            onAnswerTipClick = {
+                showAnswer = true
+            }
         )
 
         Row(
@@ -138,7 +149,8 @@ fun MemoryRecallScreen(
                     }
                 },
                 shape = RectangleShape,
-                modifier = Modifier.padding(end = 6.dp)
+                modifier = Modifier.padding(end = 6.dp),
+                enabled = showAnswer
             ) {
                 Text(text = stringResource(id = R.string.unfamiliar))
             }
@@ -150,7 +162,8 @@ fun MemoryRecallScreen(
                     }
                 },
                 shape = RectangleShape,
-                modifier = Modifier.padding(end = 6.dp)
+                modifier = Modifier.padding(end = 6.dp),
+                enabled = showAnswer
             ) {
                 Text(text = stringResource(id = R.string.hesitated))
             }
@@ -161,7 +174,8 @@ fun MemoryRecallScreen(
                         dispatch(MemoryRecallViewAction.ClickRecalled, context)
                     }
                 },
-                shape = RectangleShape
+                shape = RectangleShape,
+                enabled = showAnswer
             ) {
                 Text(text = stringResource(id = R.string.recalled))
             }
@@ -194,7 +208,9 @@ fun MemoryRecallScreen(
 private fun QuestionAndAnswerColumn(
     modifier: Modifier,
     currentCard: QuestionCard? = null,
-    needRefreshDueText: Boolean
+    needRefreshDueText: Boolean,
+    showAnswer: Boolean,
+    onAnswerTipClick: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier
@@ -250,19 +266,40 @@ private fun QuestionAndAnswerColumn(
                 .padding(all = 6.dp)
                 .weight(0.5f)
                 .background(gayBackground)
-        ) {
-            val (answerText) = createRefs()
-
-            Text(
-                text = currentCard?.answer ?: "",
-                color = Color.White,
-                modifier = Modifier
-                    .constrainAs(answerText) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
+                .clickable {
+                    if (currentCard != null) {
+                        onAnswerTipClick?.invoke()
                     }
-                    .padding(3.dp)
-            )
+                }
+        ) {
+            val (tipText, answerText) = createRefs()
+
+            if (showAnswer.not() && currentCard != null) {
+                Text(
+                    text = stringResource(id = R.string.show_answer_tip),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .constrainAs(tipText) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                )
+            } else {
+                Text(
+                    text = currentCard?.answer ?: "",
+                    color = Color.White,
+                    modifier = Modifier
+                        .constrainAs(answerText) {
+                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                        }
+                        .padding(3.dp)
+                )
+            }
         }
     }
 }
