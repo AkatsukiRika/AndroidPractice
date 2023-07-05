@@ -3,6 +3,7 @@ package com.tangping.androidpractice.ui.memorize
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Button
@@ -63,6 +66,7 @@ fun MemoryRecallScreen(
     var needRefreshDueText by rememberSaveable { mutableStateOf(false) }
     var showCancelDialog by rememberSaveable { mutableStateOf(defaultShowCancelDialog) }
     var showAnswer by rememberSaveable { mutableStateOf(false) }
+    val answerScrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         if (fileName != null) {
@@ -126,6 +130,7 @@ fun MemoryRecallScreen(
             currentCard = viewStates.currentCard,
             needRefreshDueText = needRefreshDueText,
             showAnswer = showAnswer,
+            answerScrollState = answerScrollState,
             onAnswerTipClick = {
                 showAnswer = true
             }
@@ -210,6 +215,7 @@ private fun QuestionAndAnswerColumn(
     currentCard: QuestionCard? = null,
     needRefreshDueText: Boolean,
     showAnswer: Boolean,
+    answerScrollState: ScrollState,
     onAnswerTipClick: (() -> Unit)? = null
 ) {
     Column(
@@ -271,6 +277,7 @@ private fun QuestionAndAnswerColumn(
                         onAnswerTipClick?.invoke()
                     }
                 }
+                .verticalScroll(answerScrollState)
         ) {
             val (tipText, answerText) = createRefs()
 
