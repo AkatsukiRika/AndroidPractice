@@ -38,5 +38,8 @@
     <string name="save_popup">Save changes to %1$s?</string>
     <string name="save">Save</string>
     <string name="fetch_remote_failure">Failed to fetch remote data.</string>
+    <string name="update_remote_failure">Failed to update remote data.</string>
     <string name="show_answer_tip">Tap here to reveal answer</string>
+    <string name="remote_tag">REMOTE</string>
+    <string name="local_tag">LOCAL</string>
 </resources>

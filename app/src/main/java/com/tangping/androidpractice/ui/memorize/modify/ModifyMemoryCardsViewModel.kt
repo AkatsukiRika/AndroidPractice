@@ -7,14 +7,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
+import com.tangping.androidpractice.model.memorize.RemoteData
 import com.tangping.androidpractice.utils.JsonUtils
+import com.tangping.androidpractice.utils.SharedPreferenceUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.Exception
 import javax.inject.Inject
 
 class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
@@ -56,6 +60,9 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             is ModifyMemoryCardsAction.SaveJson -> {
                 writeJson(context, action.fileName)
             }
+            is ModifyMemoryCardsAction.GetRemoteData -> {
+                getRemoteData(context)
+            }
         }
     }
 
@@ -77,6 +84,20 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             JsonUtils.writeJson(context, fileName, viewStates.questionCards)
             withContext(Dispatchers.Main) {
                 _viewEvents.send(ModifyMemoryCardsEvent.DismissSavePopup)
+            }
+        }
+    }
+
+    private fun getRemoteData(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val remoteDataJson = SharedPreferenceUtils.getString(context, SharedPreferenceUtils.REMOTE_DATA_JSON)
+            try {
+                val gson = Gson()
+                gson.fromJson(remoteDataJson, RemoteData::class.java)?.let {
+                    viewStates = viewStates.copy(remoteData = it)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -160,7 +181,8 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
 data class ModifyMemoryCardsState(
     val questionCards: MutableList<QuestionCard> = mutableListOf(),
     var currentCard: QuestionCard? = null,
-    var currentIndex: Int = 0
+    var currentIndex: Int = 0,
+    var remoteData: RemoteData? = null
 )
 
 sealed class ModifyMemoryCardsEvent {
@@ -185,4 +207,6 @@ sealed class ModifyMemoryCardsAction {
     data class DeleteEntry(val index: Int) : ModifyMemoryCardsAction()
 
     data class SaveJson(val fileName: String) : ModifyMemoryCardsAction()
+
+    object GetRemoteData : ModifyMemoryCardsAction()
 }

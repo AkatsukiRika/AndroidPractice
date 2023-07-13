@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.tangping.androidpractice.R
+import com.tangping.androidpractice.model.memorize.RemoteData
+import com.tangping.androidpractice.model.memorize.RemoteDataItem
 import com.tangping.androidpractice.utils.JsonUtils
 import com.tangping.androidpractice.utils.NetworkUtils
 import com.tangping.androidpractice.utils.SharedPreferenceUtils
@@ -47,6 +50,7 @@ class MemorizePreparationViewModel @Inject constructor() : ViewModel() {
             remoteCacheId.let {
                 SharedPreferenceUtils.putInt(context, SharedPreferenceUtils.REMOTE_CACHE_ID, remoteCacheId + 1)
             }
+            updateRemoteDataJson(context, fileName, url)
             try {
                 val saveResult = NetworkUtils.downloadAndSaveJson(context, url, fileName)
                 if (saveResult) {
@@ -59,6 +63,26 @@ class MemorizePreparationViewModel @Inject constructor() : ViewModel() {
                 e.printStackTrace()
                 showToast(context.getString(R.string.fetch_remote_failure))
             }
+        }
+    }
+
+    private fun updateRemoteDataJson(context: Context, fileName: String, url: String) {
+        val remoteDataJson = SharedPreferenceUtils.getString(context, SharedPreferenceUtils.REMOTE_DATA_JSON)
+        try {
+            val gson = Gson()
+            var remoteData = gson.fromJson(remoteDataJson, RemoteData::class.java)
+            if (remoteData == null) {
+                remoteData = RemoteData()
+            }
+            val newItem = RemoteDataItem(fileName, url)
+            remoteData.items.add(newItem)
+            SharedPreferenceUtils.putString(
+                context,
+                SharedPreferenceUtils.REMOTE_DATA_JSON,
+                gson.toJson(remoteData)
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

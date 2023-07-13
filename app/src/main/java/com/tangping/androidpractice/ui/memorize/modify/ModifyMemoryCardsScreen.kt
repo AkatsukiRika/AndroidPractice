@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
+import com.tangping.androidpractice.widgets.BasicTag
 import com.tangping.androidpractice.widgets.CloseButton
 import com.tangping.androidpractice.widgets.ConfirmPopup
 
@@ -71,6 +72,11 @@ fun ModifyMemoryCardsScreen(
                 ModifyMemoryCardsAction.ReadJson(fileName),
                 context
             )
+
+            viewModel.dispatch(
+                ModifyMemoryCardsAction.GetRemoteData,
+                context
+            )
         }
 
         viewModel.viewEvents.collect {
@@ -93,7 +99,7 @@ fun ModifyMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, btnDone, qaColumn, seeker, deletePopup, savePopup) = createRefs()
+        val (btnClose, tag, btnDone, qaColumn, seeker, deletePopup, savePopup) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -103,6 +109,19 @@ fun ModifyMemoryCardsScreen(
             onClick = {
                 showExitPopup = true
             }
+        )
+
+        BasicTag(
+            modifier = Modifier.constrainAs(tag) {
+                top.linkTo(btnClose.top)
+                bottom.linkTo(btnClose.bottom)
+                start.linkTo(btnClose.end)
+            },
+            text = stringResource(
+                id = if (fileName != null && viewStates.remoteData?.containsFile(fileName) == true) {
+                    R.string.remote_tag
+                } else R.string.local_tag
+            )
         )
 
         QuestionSeeker(
