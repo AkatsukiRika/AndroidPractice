@@ -42,4 +42,6 @@
     <string name="show_answer_tip">Tap here to reveal answer</string>
     <string name="remote_tag">REMOTE</string>
     <string name="local_tag">LOCAL</string>
+    <string name="confirm_remote_url">Please confirm remote URL</string>
+    <string name="refresh_remote_data">Refresh remote data</string>
 </resources>

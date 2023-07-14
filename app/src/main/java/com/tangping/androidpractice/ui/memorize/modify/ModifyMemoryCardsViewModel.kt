@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import com.tangping.androidpractice.R
 import com.tangping.androidpractice.model.memorize.QuestionCard
 import com.tangping.androidpractice.model.memorize.RemoteData
+import com.tangping.androidpractice.model.memorize.RemoteDataItem
 import com.tangping.androidpractice.utils.JsonUtils
 import com.tangping.androidpractice.utils.SharedPreferenceUtils
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,7 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
                 writeJson(context, action.fileName)
             }
             is ModifyMemoryCardsAction.GetRemoteData -> {
-                getRemoteData(context)
+                getRemoteData(context, action.fileName)
             }
         }
     }
@@ -88,14 +89,22 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun getRemoteData(context: Context) {
+    private fun getRemoteData(context: Context, fileName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val remoteDataJson = SharedPreferenceUtils.getString(context, SharedPreferenceUtils.REMOTE_DATA_JSON)
             try {
                 val gson = Gson()
-                gson.fromJson(remoteDataJson, RemoteData::class.java)?.let {
-                    viewStates = viewStates.copy(remoteData = it)
+                val remoteData = gson.fromJson(remoteDataJson, RemoteData::class.java)
+                var currentItem: RemoteDataItem? = null
+                if (remoteData != null) {
+                    currentItem = remoteData.items.find {
+                        it.fileName == fileName
+                    }
                 }
+                viewStates = viewStates.copy(
+                    remoteData = remoteData,
+                    remoteDataItem = currentItem
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -182,7 +191,8 @@ data class ModifyMemoryCardsState(
     val questionCards: MutableList<QuestionCard> = mutableListOf(),
     var currentCard: QuestionCard? = null,
     var currentIndex: Int = 0,
-    var remoteData: RemoteData? = null
+    var remoteData: RemoteData? = null,
+    var remoteDataItem: RemoteDataItem? = null
 )
 
 sealed class ModifyMemoryCardsEvent {
@@ -208,5 +218,5 @@ sealed class ModifyMemoryCardsAction {
 
     data class SaveJson(val fileName: String) : ModifyMemoryCardsAction()
 
-    object GetRemoteData : ModifyMemoryCardsAction()
+    data class GetRemoteData(val fileName: String) : ModifyMemoryCardsAction()
 }

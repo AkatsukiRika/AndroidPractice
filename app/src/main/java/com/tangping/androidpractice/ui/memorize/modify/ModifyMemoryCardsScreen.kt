@@ -17,6 +17,7 @@ import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material.icons.sharp.Done
 import androidx.compose.material.icons.sharp.KeyboardArrowLeft
 import androidx.compose.material.icons.sharp.KeyboardArrowRight
+import androidx.compose.material.icons.sharp.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import com.tangping.androidpractice.ui.theme.gayBackground
 import com.tangping.androidpractice.widgets.BasicTag
 import com.tangping.androidpractice.widgets.CloseButton
 import com.tangping.androidpractice.widgets.ConfirmPopup
+import com.tangping.androidpractice.widgets.UrlPopup
 
 interface ModifyMemoryCardsCallback {
     fun onNavigateBack()
@@ -58,13 +60,15 @@ fun ModifyMemoryCardsScreen(
     fileName: String? = null,
     defaultShowDeletePopup: Boolean = false,
     defaultShowExitPopup: Boolean = false,
-    defaultShowSavePopup: Boolean = false
+    defaultShowSavePopup: Boolean = false,
+    defaultShowUrlConfirmPopup: Boolean = false
 ) {
     val viewStates = viewModel.viewStates
     val context = LocalContext.current
     var showDeletePopup by rememberSaveable { mutableStateOf(defaultShowDeletePopup) }
     var showExitPopup by rememberSaveable { mutableStateOf(defaultShowExitPopup) }
     var showSavePopup by rememberSaveable { mutableStateOf(defaultShowSavePopup) }
+    var showUrlConfirmPopup by rememberSaveable { mutableStateOf(defaultShowUrlConfirmPopup) }
 
     LaunchedEffect(Unit) {
         fileName?.let {
@@ -74,7 +78,7 @@ fun ModifyMemoryCardsScreen(
             )
 
             viewModel.dispatch(
-                ModifyMemoryCardsAction.GetRemoteData,
+                ModifyMemoryCardsAction.GetRemoteData(fileName),
                 context
             )
         }
@@ -99,7 +103,16 @@ fun ModifyMemoryCardsScreen(
             .background(darkBackground)
             .fillMaxSize()
     ) {
-        val (btnClose, tag, btnDone, qaColumn, seeker, deletePopup, savePopup) = createRefs()
+        val (btnClose,
+            tag,
+            btnDone,
+            btnRefresh,
+            qaColumn,
+            seeker,
+            deletePopup,
+            savePopup,
+            urlConfirmPopup
+        ) = createRefs()
 
         CloseButton(
             modifier = Modifier.constrainAs(btnClose) {
@@ -118,9 +131,7 @@ fun ModifyMemoryCardsScreen(
                 start.linkTo(btnClose.end)
             },
             text = stringResource(
-                id = if (fileName != null && viewStates.remoteData?.containsFile(fileName) == true) {
-                    R.string.remote_tag
-                } else R.string.local_tag
+                id = if (viewStates.remoteDataItem != null) R.string.remote_tag else R.string.local_tag
             )
         )
 
@@ -177,6 +188,18 @@ fun ModifyMemoryCardsScreen(
                 showSavePopup = true
             }
         )
+
+        if (viewStates.remoteDataItem != null) {
+            RefreshButton(
+                modifier = Modifier.constrainAs(btnRefresh) {
+                    top.linkTo(parent.top)
+                    end.linkTo(btnDone.start)
+                },
+                onClick = {
+                    showUrlConfirmPopup = true
+                }
+            )
+        }
 
         QuestionAndAnswerColumn(
             modifier = Modifier.constrainAs(qaColumn) {
@@ -274,6 +297,25 @@ fun ModifyMemoryCardsScreen(
                 reverseButtons = true
             )
         }
+
+        if (showUrlConfirmPopup) {
+            UrlPopup(
+                modifier = Modifier.constrainAs(urlConfirmPopup) {
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                title = stringResource(id = R.string.confirm_remote_url),
+                buttonText = stringResource(id = R.string.refresh_remote_data),
+                url = viewStates.remoteDataItem?.url ?: "",
+                onUrlChange = {},
+                onConfirm = {},
+                onClose = {
+                    showUrlConfirmPopup = false
+                }
+            )
+        }
     }
 }
 
@@ -363,6 +405,23 @@ private fun DoneButton(
         Icon(
             Icons.Sharp.Done,
             contentDescription = "Done Button",
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
+private fun RefreshButton(
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = { onClick.invoke() },
+        modifier = modifier
+    ) {
+        Icon(
+            Icons.Sharp.Refresh,
+            contentDescription = "Refresh Button",
             tint = Color.White
         )
     }
@@ -478,5 +537,5 @@ private fun DueTimeText(
 @Composable
 @Preview(showSystemUi = true, showBackground = true)
 fun PreviewModifyMemoryCardsScreen() {
-    ModifyMemoryCardsScreen(defaultShowSavePopup = true)
+    ModifyMemoryCardsScreen(defaultShowUrlConfirmPopup = true)
 }
