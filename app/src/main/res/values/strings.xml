@@ -44,4 +44,5 @@
     <string name="local_tag">LOCAL</string>
     <string name="confirm_remote_url">Please confirm remote URL</string>
     <string name="refresh_remote_data">Refresh remote data</string>
+    <string name="refresh_remote_data_success">Remote data refreshed successfully.</string>
 </resources>

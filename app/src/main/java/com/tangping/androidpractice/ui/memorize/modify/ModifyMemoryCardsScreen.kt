@@ -98,6 +98,9 @@ fun ModifyMemoryCardsScreen(
                 is ModifyMemoryCardsEvent.ChangeRemoteUrl -> {
                     url = it.url
                 }
+                is ModifyMemoryCardsEvent.DismissUrlConfirmPopup -> {
+                    showUrlConfirmPopup = false
+                }
             }
         }
     }
@@ -316,7 +319,12 @@ fun ModifyMemoryCardsScreen(
                 onUrlChange = {
                     url = it
                 },
-                onConfirm = {},
+                onConfirm = {
+                    viewModel.dispatch(
+                        ModifyMemoryCardsAction.RefreshRemoteData(url = it),
+                        context
+                    )
+                },
                 onClose = {
                     showUrlConfirmPopup = false
                 }

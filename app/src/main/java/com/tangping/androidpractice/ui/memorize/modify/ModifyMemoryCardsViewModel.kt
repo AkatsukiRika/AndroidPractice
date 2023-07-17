@@ -64,6 +64,9 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
             is ModifyMemoryCardsAction.GetRemoteData -> {
                 getRemoteData(context, action.fileName)
             }
+            is ModifyMemoryCardsAction.RefreshRemoteData -> {
+                refreshRemoteData(context, action.url)
+            }
         }
     }
 
@@ -112,6 +115,23 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    private fun refreshRemoteData(context: Context, url: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val newCardList = JsonUtils.refreshRemoteData(viewStates.questionCards, url)
+            viewStates = viewStates.copy(
+                questionCards = newCardList.toMutableList(),
+                currentCard = if (newCardList.isNotEmpty()) newCardList[0] else viewStates.currentCard,
+                currentIndex = if (newCardList.isNotEmpty()) 0 else viewStates.currentIndex,
+            )
+            withContext(Dispatchers.Main) {
+                _viewEvents.send(ModifyMemoryCardsEvent.ShowToast(
+                    context.getString(R.string.refresh_remote_data_success)
+                ))
+                _viewEvents.send(ModifyMemoryCardsEvent.DismissUrlConfirmPopup)
             }
         }
     }
@@ -207,6 +227,8 @@ sealed class ModifyMemoryCardsEvent {
 
     object DismissSavePopup : ModifyMemoryCardsEvent()
 
+    object DismissUrlConfirmPopup : ModifyMemoryCardsEvent()
+
     data class ChangeRemoteUrl(val url: String) : ModifyMemoryCardsEvent()
 }
 
@@ -226,4 +248,6 @@ sealed class ModifyMemoryCardsAction {
     data class SaveJson(val fileName: String) : ModifyMemoryCardsAction()
 
     data class GetRemoteData(val fileName: String) : ModifyMemoryCardsAction()
+
+    data class RefreshRemoteData(val url: String) : ModifyMemoryCardsAction()
 }
