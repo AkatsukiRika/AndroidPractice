@@ -69,6 +69,7 @@ fun ModifyMemoryCardsScreen(
     var showExitPopup by rememberSaveable { mutableStateOf(defaultShowExitPopup) }
     var showSavePopup by rememberSaveable { mutableStateOf(defaultShowSavePopup) }
     var showUrlConfirmPopup by rememberSaveable { mutableStateOf(defaultShowUrlConfirmPopup) }
+    var url by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         fileName?.let {
@@ -93,6 +94,9 @@ fun ModifyMemoryCardsScreen(
                 }
                 is ModifyMemoryCardsEvent.DismissSavePopup -> {
                     showSavePopup = false
+                }
+                is ModifyMemoryCardsEvent.ChangeRemoteUrl -> {
+                    url = it.url
                 }
             }
         }
@@ -308,8 +312,10 @@ fun ModifyMemoryCardsScreen(
                 },
                 title = stringResource(id = R.string.confirm_remote_url),
                 buttonText = stringResource(id = R.string.refresh_remote_data),
-                url = viewStates.remoteDataItem?.url ?: "",
-                onUrlChange = {},
+                url = url,
+                onUrlChange = {
+                    url = it
+                },
                 onConfirm = {},
                 onClose = {
                     showUrlConfirmPopup = false

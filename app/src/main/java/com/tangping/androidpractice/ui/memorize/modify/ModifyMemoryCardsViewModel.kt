@@ -105,6 +105,11 @@ class ModifyMemoryCardsViewModel @Inject constructor() : ViewModel() {
                     remoteData = remoteData,
                     remoteDataItem = currentItem
                 )
+                withContext(Dispatchers.Main) {
+                    _viewEvents.send(ModifyMemoryCardsEvent.ChangeRemoteUrl(
+                        url = viewStates.remoteDataItem?.url ?: ""
+                    ))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -201,6 +206,8 @@ sealed class ModifyMemoryCardsEvent {
     object DismissDeletePopup : ModifyMemoryCardsEvent()
 
     object DismissSavePopup : ModifyMemoryCardsEvent()
+
+    data class ChangeRemoteUrl(val url: String) : ModifyMemoryCardsEvent()
 }
 
 sealed class ModifyMemoryCardsAction {

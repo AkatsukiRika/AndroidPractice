@@ -53,4 +53,9 @@ object NetworkUtils {
                 continuation.resume(false)
             }
         }
+
+    suspend fun getStringFromUrl(url: String): String = withContext(Dispatchers.IO) {
+        val stream = URL(url).openStream()
+        stream.bufferedReader().use { it.readText() }
+    }
 }
