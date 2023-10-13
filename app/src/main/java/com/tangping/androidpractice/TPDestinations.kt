@@ -37,3 +37,8 @@ object ModifyMemoryCards : TPDestination {
     override val route: String
         get() = "modify_memory_cards/{$PARAM_FILE_NAME}"
 }
+
+object DataStoreDemo : TPDestination {
+    override val route: String
+        get() = "data_store_demo"
+}

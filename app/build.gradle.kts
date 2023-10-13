@@ -76,4 +76,5 @@ dependencies {
     implementation(libs.constraintlayout.compose)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.gson)
+    implementation(libs.datastore.preferences)
 }

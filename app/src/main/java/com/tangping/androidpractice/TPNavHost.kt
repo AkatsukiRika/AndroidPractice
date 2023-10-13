@@ -7,6 +7,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.tangping.androidpractice.ui.datastore.DataStoreDemoScreen
+import com.tangping.androidpractice.ui.datastore.DataStoreDemoScreenCallback
 import com.tangping.androidpractice.ui.gallery.ImageGalleryScreen
 import com.tangping.androidpractice.ui.gallery.ImageGalleryScreenCallback
 import com.tangping.androidpractice.ui.home.HomeScreen
@@ -46,6 +48,12 @@ fun TPNavHost(
 
                 override fun onCreateMemoryCardsClick() {
                     navController.navigate(CreateMemoryCards.route) {
+                        launchSingleTop = true
+                    }
+                }
+
+                override fun onDataStoreDemoClick() {
+                    navController.navigate(DataStoreDemo.route) {
                         launchSingleTop = true
                     }
                 }
@@ -124,6 +132,17 @@ fun TPNavHost(
                 }
             }
             MemorizePreparationScreen(callback)
+        }
+
+        composable(
+            route = DataStoreDemo.route
+        ) {
+            val callback = object : DataStoreDemoScreenCallback {
+                override fun onNavigateBack() {
+                    navController.popBackStack(route = HomeScreen.route, inclusive = false)
+                }
+            }
+            DataStoreDemoScreen(callback)
         }
     }
 }
