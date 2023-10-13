@@ -54,4 +54,6 @@
     <string name="key_empty_toast">Key must not be empty!</string>
     <string name="value_type_toast">Value does not match the selected type.</string>
     <string name="write_data_success">Data is written successfully.</string>
+    <string name="read_data">Read Data</string>
+    <string name="read">Read</string>
 </resources>

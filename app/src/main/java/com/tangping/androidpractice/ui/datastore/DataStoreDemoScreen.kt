@@ -1,5 +1,6 @@
 package com.tangping.androidpractice.ui.datastore
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tangping.androidpractice.R
+import com.tangping.androidpractice.ui.theme.darkBackground
 import com.tangping.androidpractice.ui.theme.gayBackground
 
 private val dataTypeItems = listOf(
@@ -53,161 +55,312 @@ interface DataStoreDemoScreenCallback {
     fun onNavigateBack()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DataStoreDemoScreen(
     callback: DataStoreDemoScreenCallback? = null,
     viewModel: DataStoreDemoViewModel = hiltViewModel()
 ) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(darkBackground)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            WriteDataLayout(viewModel = viewModel)
+            
+            Spacer(modifier = Modifier.height(48.dp))
+
+            ReadDataLayout(viewModel = viewModel)
+        }
+
+        CloseButton(
+            modifier = Modifier.align(Alignment.TopStart),
+            callback
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WriteDataLayout(viewModel: DataStoreDemoViewModel) {
     val context = LocalContext.current
     var expanded by rememberSaveable { mutableStateOf(false) }
     var selectedDataType by rememberSaveable { mutableStateOf(0) }
     var dataKey by rememberSaveable { mutableStateOf("") }
     var dataValue by rememberSaveable { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.write_data),
+            style = TextStyle(color = Color.White, fontSize = 18.sp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringResource(id = R.string.write_data),
-                style = TextStyle(color = Color.White, fontSize = 18.sp)
+                text = stringResource(id = R.string.key).uppercase(),
+                style = TextStyle(color = Color.White, fontSize = 16.sp),
+                modifier = Modifier.width(70.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
+            TextField(
+                value = dataKey,
+                onValueChange = {
+                    dataKey = it
+                },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.key).uppercase(),
-                    style = TextStyle(color = Color.White, fontSize = 16.sp),
-                    modifier = Modifier.width(70.dp)
-                )
-
-                TextField(
-                    value = dataKey,
-                    onValueChange = {
-                        dataKey = it
-                    },
-                    modifier = Modifier
-                        .height(48.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = gayBackground,
-                        textColor = Color.White
-                    ),
-                    maxLines = 1
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.value).uppercase(),
-                    style = TextStyle(color = Color.White, fontSize = 16.sp),
-                    modifier = Modifier.width(70.dp)
-                )
-
-                TextField(
-                    value = dataValue,
-                    onValueChange = {
-                        dataValue = it
-                    },
-                    modifier = Modifier
-                        .height(48.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = gayBackground,
-                        textColor = Color.White
-                    ),
-                    maxLines = 1
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Button(
-                    onClick = {
-                        expanded = !expanded
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.width(144.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.type_s).format(dataTypeItems[selectedDataType]),
-                        style = TextStyle(color = Color.White)
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    offset = DpOffset(x = 42.dp, y = 0.dp),
-                    modifier = Modifier.width(144.dp)
-                ) {
-                    dataTypeItems.forEachIndexed { index, s ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(text = s)
-                            },
-                            onClick = {
-                                expanded = false
-                                selectedDataType = index
-                            }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Button(
-                    onClick = {
-                        viewModel.dispatch(
-                            context,
-                            DataStoreDemoEvent.WriteData(
-                                type = dataTypeItems[selectedDataType],
-                                key = dataKey,
-                                value = dataValue
-                            )
-                        )
-                    },
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.write),
-                        style = TextStyle(color = Color.White)
-                    )
-                }
-            }
+                    .height(56.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = gayBackground,
+                    textColor = Color.White
+                ),
+                maxLines = 1
+            )
         }
 
-        CloseButton(
-            callback,
-            modifier = Modifier.align(Alignment.TopStart)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.value).uppercase(),
+                style = TextStyle(color = Color.White, fontSize = 16.sp),
+                modifier = Modifier.width(70.dp)
+            )
+
+            TextField(
+                value = dataValue,
+                onValueChange = {
+                    dataValue = it
+                },
+                modifier = Modifier
+                    .height(56.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = gayBackground,
+                    textColor = Color.White
+                ),
+                maxLines = 1
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = {
+                    expanded = !expanded
+                },
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.width(144.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.type_s).format(dataTypeItems[selectedDataType]),
+                    style = TextStyle(color = Color.White)
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                offset = DpOffset(x = 42.dp, y = 0.dp),
+                modifier = Modifier.width(144.dp)
+            ) {
+                dataTypeItems.forEachIndexed { index, s ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = s)
+                        },
+                        onClick = {
+                            expanded = false
+                            selectedDataType = index
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Button(
+                onClick = {
+                    viewModel.dispatch(
+                        context,
+                        DataStoreDemoEvent.WriteData(
+                            type = dataTypeItems[selectedDataType],
+                            key = dataKey,
+                            value = dataValue
+                        )
+                    )
+                },
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.write),
+                    style = TextStyle(color = Color.White)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReadDataLayout(viewModel: DataStoreDemoViewModel) {
+    val context = LocalContext.current
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selectedDataType by rememberSaveable { mutableStateOf(0) }
+    var dataKey by rememberSaveable { mutableStateOf("") }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.read_data),
+            style = TextStyle(color = Color.White, fontSize = 18.sp)
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.key).uppercase(),
+                style = TextStyle(color = Color.White, fontSize = 16.sp),
+                modifier = Modifier.width(70.dp)
+            )
+
+            TextField(
+                value = dataKey,
+                onValueChange = {
+                    dataKey = it
+                },
+                modifier = Modifier
+                    .height(56.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = gayBackground,
+                    textColor = Color.White
+                ),
+                maxLines = 1
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.value).uppercase(),
+                style = TextStyle(color = Color.White, fontSize = 16.sp),
+                modifier = Modifier.width(70.dp)
+            )
+
+            TextField(
+                value = viewModel.viewStates.readValue,
+                onValueChange = {},
+                modifier = Modifier
+                    .height(56.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = gayBackground,
+                    textColor = Color.White
+                ),
+                maxLines = 1,
+                readOnly = true
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = {
+                    expanded = !expanded
+                },
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier.width(144.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.type_s).format(dataTypeItems[selectedDataType]),
+                    style = TextStyle(color = Color.White)
+                )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                offset = DpOffset(x = 42.dp, y = 0.dp),
+                modifier = Modifier.width(144.dp)
+            ) {
+                dataTypeItems.forEachIndexed { index, s ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(text = s)
+                        },
+                        onClick = {
+                            expanded = false
+                            selectedDataType = index
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Button(
+                onClick = {
+                    viewModel.dispatch(context, DataStoreDemoEvent.ReadData(
+                        type = dataTypeItems[selectedDataType],
+                        key = dataKey
+                    ))
+                },
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.read),
+                    style = TextStyle(color = Color.White)
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun CloseButton(
-    callback: DataStoreDemoScreenCallback? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    callback: DataStoreDemoScreenCallback? = null
 ) {
     IconButton(
         onClick = {

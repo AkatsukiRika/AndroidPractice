@@ -2,6 +2,9 @@ package com.tangping.androidpractice.ui.datastore
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -16,6 +19,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tangping.androidpractice.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,10 +37,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
         const val TYPE_FLOAT = "Float"
     }
 
+    var viewStates by mutableStateOf(DataStoreDemoState())
+        private set
+
     fun dispatch(context: Context, event: DataStoreDemoEvent) {
         when (event) {
             is DataStoreDemoEvent.WriteData -> {
                 writeData(context, event.type, event.key, event.value)
+            }
+
+            is DataStoreDemoEvent.ReadData -> {
+                readData(context, event.type, event.key)
             }
         }
     }
@@ -132,8 +144,118 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
+
+    private fun readData(context: Context, type: String, key: String) {
+        if (key.isEmpty()) {
+            Toast.makeText(context, context.getString(R.string.key_empty_toast), Toast.LENGTH_SHORT).show()
+            return
+        }
+        when (type) {
+            TYPE_INT -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = intPreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: 0
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first().toString()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            TYPE_LONG -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = longPreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: 0L
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first().toString()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            TYPE_BOOLEAN -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = booleanPreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: false
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first().toString()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            TYPE_STRING -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = stringPreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: ""
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            TYPE_DOUBLE -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = doublePreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: 0.0
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first().toString()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            TYPE_FLOAT -> {
+                viewModelScope.launch {
+                    try {
+                        val prefKey = floatPreferencesKey(key)
+                        val flow = context.demoDataStore.data.map { preferences ->
+                            preferences[prefKey] ?: 0f
+                        }
+                        viewStates = DataStoreDemoState(
+                            readValue = flow.first().toString()
+                        )
+                    } catch (e: Exception) {
+                        Toast.makeText(context, e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
 }
+
+data class DataStoreDemoState(
+    val readValue: String = ""
+)
 
 sealed class DataStoreDemoEvent {
     data class WriteData(val type: String, val key: String, val value: String) : DataStoreDemoEvent()
+
+    data class ReadData(val type: String, val key: String) : DataStoreDemoEvent()
 }
