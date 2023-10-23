@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.hiltAndroid)
+    alias(libs.plugins.protobuf)
     kotlin("kapt")
 }
 
@@ -51,6 +52,18 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    protobuf {
+        protoc {
+            artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.javalite.get()}"
+        }
+        generateProtoTasks {
+            all().forEach { task ->
+                task.plugins.create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -77,4 +90,6 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.gson)
     implementation(libs.datastore.preferences)
+    implementation(libs.datastore.proto)
+    implementation(libs.protobuf.javalite)
 }

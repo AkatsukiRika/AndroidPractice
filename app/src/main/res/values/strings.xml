@@ -56,4 +56,6 @@
     <string name="write_data_success">Data is written successfully.</string>
     <string name="read_data">Read Data</string>
     <string name="read">Read</string>
+    <string name="preferences">Preferences</string>
+    <string name="proto">Proto</string>
 </resources>

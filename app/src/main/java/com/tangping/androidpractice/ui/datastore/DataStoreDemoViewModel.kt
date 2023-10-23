@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.datastore.core.DataStore
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
@@ -17,14 +18,21 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tangping.androidpractice.ProtoDataStore
 import com.tangping.androidpractice.R
+import com.tangping.androidpractice.ui.datastore.proto.ProtoDataStoreSerializer
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 val Context.demoDataStore: DataStore<Preferences> by preferencesDataStore(name = "demo")
+val Context.protoDataStore: DataStore<ProtoDataStore> by dataStore(
+    fileName = "proto_data_store.pb",
+    serializer = ProtoDataStoreSerializer
+)
 
 @HiltViewModel
 class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
@@ -49,6 +57,10 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             is DataStoreDemoEvent.ReadData -> {
                 readData(context, event.type, event.key)
             }
+
+            is DataStoreDemoEvent.ChangeMode -> {
+                viewStates = viewStates.copy(mode = event.mode)
+            }
         }
     }
 
@@ -57,6 +69,7 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             Toast.makeText(context, context.getString(R.string.key_empty_toast), Toast.LENGTH_SHORT).show()
             return
         }
+        val isProto = viewStates.mode == DataStoreDemoMode.PROTO
         when (type) {
             TYPE_INT -> {
                 val intValue = value.toIntOrNull()
@@ -65,9 +78,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
                     return
                 }
                 viewModelScope.launch {
-                    val prefKey = intPreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = intValue
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putIntData(key, intValue)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = intPreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = intValue
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -80,9 +101,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
                     return
                 }
                 viewModelScope.launch {
-                    val prefKey = longPreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = longValue
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putLongData(key, longValue)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = longPreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = longValue
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -95,9 +124,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
                     return
                 }
                 viewModelScope.launch {
-                    val prefKey = booleanPreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = booleanValue
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putBooleanData(key, booleanValue)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = booleanPreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = booleanValue
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -105,9 +142,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
 
             TYPE_STRING -> {
                 viewModelScope.launch {
-                    val prefKey = stringPreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = value
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putStringData(key, value)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = stringPreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = value
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -120,9 +165,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
                     return
                 }
                 viewModelScope.launch {
-                    val prefKey = doublePreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = doubleValue
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putDoubleData(key, doubleValue)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = doublePreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = doubleValue
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -135,9 +188,17 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
                     return
                 }
                 viewModelScope.launch {
-                    val prefKey = floatPreferencesKey(key)
-                    context.demoDataStore.edit {
-                        it[prefKey] = floatValue
+                    if (isProto) {
+                        context.protoDataStore.updateData { protoDataStore ->
+                            protoDataStore.toBuilder()
+                                .putFloatData(key, floatValue)
+                                .build()
+                        }
+                    } else {
+                        val prefKey = floatPreferencesKey(key)
+                        context.demoDataStore.edit {
+                            it[prefKey] = floatValue
+                        }
                     }
                     Toast.makeText(context, context.getString(R.string.write_data_success), Toast.LENGTH_SHORT).show()
                 }
@@ -150,15 +211,20 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             Toast.makeText(context, context.getString(R.string.key_empty_toast), Toast.LENGTH_SHORT).show()
             return
         }
+        val isProto = viewStates.mode == DataStoreDemoMode.PROTO
         when (type) {
             TYPE_INT -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = intPreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: 0
+                        val flow: Flow<Int> = if (isProto) {
+                            context.protoDataStore.data.map { it.intDataMap.getOrDefault(key, 0) }
+                        } else {
+                            val prefKey = intPreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: 0
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first().toString()
                         )
                     } catch (e: Exception) {
@@ -170,11 +236,15 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             TYPE_LONG -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = longPreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: 0L
+                        val flow: Flow<Long> = if (isProto) {
+                            context.protoDataStore.data.map { it.longDataMap.getOrDefault(key, 0L) }
+                        } else {
+                            val prefKey = longPreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: 0L
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first().toString()
                         )
                     } catch (e: Exception) {
@@ -186,11 +256,15 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             TYPE_BOOLEAN -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = booleanPreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: false
+                        val flow: Flow<Boolean> = if (isProto) {
+                            context.protoDataStore.data.map { it.booleanDataMap.getOrDefault(key, false) }
+                        } else {
+                            val prefKey = booleanPreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: false
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first().toString()
                         )
                     } catch (e: Exception) {
@@ -202,11 +276,15 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             TYPE_STRING -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = stringPreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: ""
+                        val flow: Flow<String> = if (isProto) {
+                            context.protoDataStore.data.map { it.stringDataMap.getOrDefault(key, "") }
+                        } else {
+                            val prefKey = stringPreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: ""
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first()
                         )
                     } catch (e: Exception) {
@@ -218,11 +296,15 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             TYPE_DOUBLE -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = doublePreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: 0.0
+                        val flow: Flow<Double> = if (isProto) {
+                            context.protoDataStore.data.map { it.doubleDataMap.getOrDefault(key, 0.0) }
+                        } else {
+                            val prefKey = doublePreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: 0.0
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first().toString()
                         )
                     } catch (e: Exception) {
@@ -234,11 +316,15 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
             TYPE_FLOAT -> {
                 viewModelScope.launch {
                     try {
-                        val prefKey = floatPreferencesKey(key)
-                        val flow = context.demoDataStore.data.map { preferences ->
-                            preferences[prefKey] ?: 0f
+                        val flow: Flow<Float> = if (isProto) {
+                            context.protoDataStore.data.map { it.floatDataMap.getOrDefault(key, 0f) }
+                        } else {
+                            val prefKey = floatPreferencesKey(key)
+                            context.demoDataStore.data.map { preferences ->
+                                preferences[prefKey] ?: 0f
+                            }
                         }
-                        viewStates = DataStoreDemoState(
+                        viewStates = viewStates.copy(
                             readValue = flow.first().toString()
                         )
                     } catch (e: Exception) {
@@ -251,11 +337,18 @@ class DataStoreDemoViewModel @Inject constructor() : ViewModel() {
 }
 
 data class DataStoreDemoState(
-    val readValue: String = ""
+    val readValue: String = "",
+    val mode: DataStoreDemoMode = DataStoreDemoMode.PREFERENCES
 )
+
+enum class DataStoreDemoMode {
+    PREFERENCES, PROTO
+}
 
 sealed class DataStoreDemoEvent {
     data class WriteData(val type: String, val key: String, val value: String) : DataStoreDemoEvent()
 
     data class ReadData(val type: String, val key: String) : DataStoreDemoEvent()
+
+    data class ChangeMode(val mode: DataStoreDemoMode) : DataStoreDemoEvent()
 }

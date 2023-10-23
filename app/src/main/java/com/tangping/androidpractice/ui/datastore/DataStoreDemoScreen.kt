@@ -20,6 +20,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -69,6 +70,10 @@ fun DataStoreDemoScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            SwitchLayout(viewModel)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             WriteDataLayout(viewModel = viewModel)
             
             Spacer(modifier = Modifier.height(48.dp))
@@ -79,6 +84,33 @@ fun DataStoreDemoScreen(
         CloseButton(
             modifier = Modifier.align(Alignment.TopStart),
             callback
+        )
+    }
+}
+
+@Composable
+private fun SwitchLayout(viewModel: DataStoreDemoViewModel) {
+    val context = LocalContext.current
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = stringResource(id = R.string.preferences),
+            color = Color.White
+        )
+
+        Switch(
+            checked = viewModel.viewStates.mode == DataStoreDemoMode.PROTO,
+            onCheckedChange = {
+                viewModel.dispatch(context, DataStoreDemoEvent.ChangeMode(
+                    mode = if (it) DataStoreDemoMode.PROTO else DataStoreDemoMode.PREFERENCES
+                ))
+            },
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+
+        Text(
+            text = stringResource(id = R.string.proto),
+            color = Color.White
         )
     }
 }

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_package = "com.tangping.androidpractice";
+option java_multiple_files = true;
+
+message ProtoDataStore {
+  map<string, sint32> int_data = 1;
+  map<string, sint64> long_data = 2;
+  map<string, bool> boolean_data = 3;
+  map<string, string> string_data = 4;
+  map<string, double> double_data = 5;
+  map<string, float> float_data = 6;
+}
