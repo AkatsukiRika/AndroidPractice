@@ -156,7 +156,8 @@ private fun WriteDataLayout(viewModel: DataStoreDemoViewModel) {
                     .height(56.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = gayBackground,
-                    textColor = Color.White
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 maxLines = 1
             )
@@ -185,7 +186,8 @@ private fun WriteDataLayout(viewModel: DataStoreDemoViewModel) {
                     .height(56.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = gayBackground,
-                    textColor = Color.White
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 maxLines = 1
             )
@@ -295,7 +297,8 @@ private fun ReadDataLayout(viewModel: DataStoreDemoViewModel) {
                     .height(56.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = gayBackground,
-                    textColor = Color.White
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 maxLines = 1
             )
@@ -322,7 +325,8 @@ private fun ReadDataLayout(viewModel: DataStoreDemoViewModel) {
                     .height(56.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = gayBackground,
-                    textColor = Color.White
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
                 maxLines = 1,
                 readOnly = true

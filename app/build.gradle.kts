@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.tangping.androidpractice"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.tangping.androidpractice"

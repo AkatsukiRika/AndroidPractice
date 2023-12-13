@@ -28,6 +28,8 @@ interface HomeScreenCallback {
     fun onCreateMemoryCardsClick()
 
     fun onDataStoreDemoClick()
+
+    fun onPagerDemoClick()
 }
 
 @Composable
@@ -71,6 +73,12 @@ fun HomeScreen(
             callback?.onDataStoreDemoClick()
         }) {
             Text(text = stringResource(id = R.string.data_store_demo))
+        }
+
+        Button(onClick = {
+            callback?.onPagerDemoClick()
+        }) {
+            Text(text = stringResource(id = R.string.pager_demo))
         }
     }
 }

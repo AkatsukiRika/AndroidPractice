@@ -66,7 +66,8 @@ fun UrlPopup(
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = backgroundColor,
-                textColor = Color.Green
+                focusedTextColor = Color.Green,
+                unfocusedTextColor = Color.Green
             )
         )
 

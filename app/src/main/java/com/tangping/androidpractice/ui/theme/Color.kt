@@ -14,3 +14,8 @@ val darkBackground = Color(0xFF1e1e1e)
 val gayBackground = Color(0xFF2d2d2d)
 val colorRed = Color(0xFFcb1b45)
 val colorGreen = Color(0xFF00aa90)
+
+val Color_F3F8FF = Color(0xFFF3F8FF)
+val Color_9BB8CD = Color(0xFF9BB8CD)
+val Color_607274 = Color(0xFF607274)
+val Color_711DB0 = Color(0xFF711DB0)

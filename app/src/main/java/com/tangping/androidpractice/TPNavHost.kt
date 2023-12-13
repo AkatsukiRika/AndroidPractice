@@ -1,5 +1,7 @@
 package com.tangping.androidpractice
 
+import android.app.Activity
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -21,10 +23,12 @@ import com.tangping.androidpractice.ui.memorize.modify.ModifyMemoryCardsCallback
 import com.tangping.androidpractice.ui.memorize.modify.ModifyMemoryCardsScreen
 import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationCallback
 import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationScreen
+import com.tangping.androidpractice.ui.pager.PagerDemoActivity
 
 @Composable
 fun TPNavHost(
     navController: NavHostController,
+    activity: Activity,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -56,6 +60,11 @@ fun TPNavHost(
                     navController.navigate(DataStoreDemo.route) {
                         launchSingleTop = true
                     }
+                }
+
+                override fun onPagerDemoClick() {
+                    val intent = Intent(activity, PagerDemoActivity::class.java)
+                    activity.startActivity(intent)
                 }
             }
             HomeScreen(callback)

@@ -307,7 +307,10 @@ private fun NewFilePopup(
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.DarkGray,
-                textColor = if (existingFiles.contains(fileName)) {
+                focusedTextColor = if (existingFiles.contains(fileName)) {
+                    Color.Red
+                } else Color.Green,
+                unfocusedTextColor = if (existingFiles.contains(fileName)) {
                     Color.Red
                 } else Color.Green
             ),
