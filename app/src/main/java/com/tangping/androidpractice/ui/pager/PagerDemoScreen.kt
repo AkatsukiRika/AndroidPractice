@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -51,15 +52,8 @@ fun PagerDemoScreen() {
         @Composable { Page(it = 4, pagerState = pagerState) },
         @Composable { Page(it = 5, pagerState = pagerState) }
     )
-    val pageMap = remember {
-        mutableMapOf(
-            0 to pageList[0],
-            1 to pageList[1],
-            2 to pageList[2],
-            3 to pageList[3],
-            4 to pageList[4],
-            5 to pageList[5]
-        )
+    val pageIndexList = remember {
+        mutableStateListOf(0, 1, 2, 3, 4, 5)
     }
     val scope = rememberCoroutineScope()
 
@@ -72,7 +66,8 @@ fun PagerDemoScreen() {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 16.dp, bottom = 64.dp, start = 16.dp, end = 16.dp),
-            pageMap = pageMap
+            pageList = pageList,
+            pageIndexList = pageIndexList
         )
 
         SeekBar(
@@ -102,7 +97,7 @@ fun PagerDemoScreen() {
         pageCallback.emit(object : PageCallback {
             override fun onSkipNext() {
                 scope.launch {
-                    skipNext(pagerState, pageList, pageMap)
+                    skipNext(pagerState, pageList, pageIndexList)
                     pagerState.animateScrollToPage(pagerState.currentPage + 1)
                 }
             }
@@ -117,16 +112,13 @@ fun PagerDemoScreen() {
 private fun skipNext(
     pagerState: PagerState,
     pageList: List<@Composable () -> Unit>,
-    pageMap: MutableMap<Int, @Composable () -> Unit>
+    pageIndexList: MutableList<Int>
 ) {
-    if (pagerState.currentPage + 2 <= pagerState.pageCount - 1) {
-        pageMap.clear()
-        var counter = 0
-        for (index in pageList.indices) {
-            if (index == pagerState.currentPage + 1) {
-                pageMap[-1] = pageList[index]
-            } else {
-                pageMap[counter++] = pageList[index]
+    if (pagerState.currentPage + 2 <= pagerState.pageCount - 1 && pageList.size == pageIndexList.size) {
+        pageIndexList.indexOfFirst { it == pagerState.currentPage + 1 }.takeIf { it != -1 }?.let { index ->
+            pageIndexList[index] = -1
+            for (i in index until pageIndexList.size) {
+                pageIndexList[i]--
             }
         }
     }
@@ -147,14 +139,16 @@ private fun restorePageMap(
 private fun Pager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
-    pageMap: Map<Int, @Composable () -> Unit>
+    pageList: List<@Composable () -> Unit>,
+    pageIndexList: List<Int>
 ) {
     HorizontalPager(
         state = pagerState,
         modifier = modifier
     ) { index ->
-        pageMap[index]?.let {
-            it()
+        val pageIndex = pageIndexList.indexOf(index)
+        if (pageIndex in pageList.indices) {
+            pageList[pageIndex]()
         }
     }
 }
