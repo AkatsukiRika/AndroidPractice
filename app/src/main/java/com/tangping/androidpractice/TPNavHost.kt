@@ -24,6 +24,7 @@ import com.tangping.androidpractice.ui.memorize.modify.ModifyMemoryCardsScreen
 import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationCallback
 import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationScreen
 import com.tangping.androidpractice.ui.pager.PagerDemoActivity
+import com.tangping.androidpractice.ui.scroll.ScrollEffectActivity
 
 @Composable
 fun TPNavHost(
@@ -64,6 +65,11 @@ fun TPNavHost(
 
                 override fun onPagerDemoClick() {
                     val intent = Intent(activity, PagerDemoActivity::class.java)
+                    activity.startActivity(intent)
+                }
+
+                override fun onScrollEffectClick() {
+                    val intent = Intent(activity, ScrollEffectActivity::class.java)
                     activity.startActivity(intent)
                 }
             }

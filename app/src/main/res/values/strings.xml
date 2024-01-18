@@ -59,4 +59,5 @@
     <string name="preferences">Preferences</string>
     <string name="proto">Proto</string>
     <string name="pager_demo">Pager Demo</string>
+    <string name="scroll_effect">Scroll Effect</string>
 </resources>

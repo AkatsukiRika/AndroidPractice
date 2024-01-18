@@ -30,6 +30,8 @@ interface HomeScreenCallback {
     fun onDataStoreDemoClick()
 
     fun onPagerDemoClick()
+
+    fun onScrollEffectClick()
 }
 
 @Composable
@@ -79,6 +81,12 @@ fun HomeScreen(
             callback?.onPagerDemoClick()
         }) {
             Text(text = stringResource(id = R.string.pager_demo))
+        }
+
+        Button(onClick = {
+            callback?.onScrollEffectClick()
+        }) {
+            Text(text = stringResource(id = R.string.scroll_effect))
         }
     }
 }
