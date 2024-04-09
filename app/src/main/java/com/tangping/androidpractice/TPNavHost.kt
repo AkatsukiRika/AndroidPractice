@@ -25,6 +25,7 @@ import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationCallb
 import com.tangping.androidpractice.ui.memorize.prepare.MemorizePreparationScreen
 import com.tangping.androidpractice.ui.pager.PagerDemoActivity
 import com.tangping.androidpractice.ui.scroll.ScrollEffectActivity
+import com.tangping.androidpractice.ui.text.AutoSizeTextActivity
 
 @Composable
 fun TPNavHost(
@@ -70,6 +71,11 @@ fun TPNavHost(
 
                 override fun onScrollEffectClick() {
                     val intent = Intent(activity, ScrollEffectActivity::class.java)
+                    activity.startActivity(intent)
+                }
+
+                override fun onAutoSizeTextClick() {
+                    val intent = Intent(activity, AutoSizeTextActivity::class.java)
                     activity.startActivity(intent)
                 }
             }

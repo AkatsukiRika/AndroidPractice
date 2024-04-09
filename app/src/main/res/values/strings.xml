@@ -60,4 +60,10 @@
     <string name="proto">Proto</string>
     <string name="pager_demo">Pager Demo</string>
     <string name="scroll_effect">Scroll Effect</string>
+    <string name="auto_size_text">Auto Size Text</string>
+    <string name="limit_height">Limit Fixed Height</string>
+    <string name="limit_lines">Limit Lines</string>
+    <string name="limit_width">Limit Fixed Width</string>
+    <string name="by_using_xml">By Using XML</string>
+    <string name="by_using_compose">By Using Compose</string>
 </resources>

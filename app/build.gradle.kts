@@ -9,14 +9,14 @@ plugins {
 
 android {
     namespace = "com.tangping.androidpractice"
-    compileSdk = 34
+    compileSdk = Configs.compileSdk
 
     defaultConfig {
         applicationId = "com.tangping.androidpractice"
-        minSdk = 24
-        targetSdk = 33
-        versionCode = 11000
-        versionName = "1.1.0"
+        minSdk = Configs.minSdk
+        targetSdk = Configs.targetSdk
+        versionCode = Configs.versionCode
+        versionName = Configs.versionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -35,17 +35,20 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = Configs.sourceCompatibility
+        targetCompatibility = Configs.sourceCompatibility
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = Configs.jvmTarget
     }
     buildFeatures {
         compose = true
     }
+    viewBinding {
+        enable = true
+    }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
     packaging {
         resources {
@@ -67,7 +70,7 @@ android {
 }
 
 dependencies {
-
+    implementation(project(":components"))
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)
